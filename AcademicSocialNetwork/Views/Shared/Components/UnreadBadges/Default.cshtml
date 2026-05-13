@@ -1,0 +1,20 @@
+@model AcademicSocialNetwork.ViewComponents.UnreadBadgesModel
+
+<li class="nav-item">
+    <a class="nav-link position-relative" asp-controller="Messages" asp-action="Index">
+        <i class="bi bi-chat-dots"></i>
+        @if (Model.Messages > 0)
+        {
+            <span class="badge">@Model.Messages</span>
+        }
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link position-relative" asp-controller="Notifications" asp-action="Index">
+        <i class="bi bi-bell"></i>
+        @if (Model.Notifications > 0)
+        {
+            <span class="badge">@Model.Notifications</span>
+        }
+    </a>
+</li>

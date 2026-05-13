@@ -1,0 +1,139 @@
+﻿@using AcademicSocialNetwork.Helpers
+@using AcademicSocialNetwork.Models
+@model AcademicSocialNetwork.ViewModels.EditProfileViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<!-- Page Header -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="mb-0" style="color: var(--primary-color);">
+            <i class="bi bi-pencil-square me-2"></i>Edit Profile
+        </h4>
+        <p class="text-muted small mb-0">Update your personal information</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Profile
+    </a>
+</div>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <!-- Profile Photo -->
+    <div class="post-card mb-4">
+        <h5 class="mb-3" style="color: var(--primary-color);">
+            <i class="bi bi-image me-2"></i>Profile Photo
+        </h5>
+        <div class="d-flex align-items-center gap-4">
+            <!-- Current avatar / preview -->
+            <div id="avatarPreviewWrap" class="flex-shrink-0">
+                @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                {
+                    <img id="avatarPreview" src="@Model.ProfileImageUrl"
+                         style="object-fit:cover; border-radius:50%; width:100px; height:100px;
+                                border:3px solid var(--secondary-color);" alt="Profile photo" />
+                }
+                else
+                {
+                    <div class="avatar-circle avatar-circle-large"
+                         style="width:100px; height:100px; font-size:2rem;">
+                        @AvatarHelper.GetInitials(Model.FullName)
+                    </div>
+                }
+            </div>
+
+            <div class="flex-grow-1">
+                <label class="form-label fw-semibold">Upload new photo</label>
+                <input type="file" name="ProfileImage" id="profileImageInput"
+                       class="form-control" accept="image/*" />
+                <div class="form-text">JPG, PNG, GIF or WEBP.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Basic Info -->
+    <div class="post-card mb-4">
+        <h5 class="mb-3" style="color: var(--primary-color);">
+            <i class="bi bi-person me-2"></i>Basic Information
+        </h5>
+
+        <div class="mb-3">
+            <label asp-for="FullName" class="form-label fw-semibold"></label>
+            <input asp-for="FullName" class="form-control" placeholder="Your full name" />
+            <span asp-validation-for="FullName" class="text-danger small"></span>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-7">
+                <label asp-for="Major" class="form-label fw-semibold"></label>
+                <select asp-for="Major"
+                        asp-items="Html.GetEnumSelectList<Major>()"
+                        class="form-select">
+                    <option value="">— Select your major —</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label asp-for="ClassYear" class="form-label fw-semibold"></label>
+                <div class="input-group">
+                    <span class="input-group-text text-muted small">Class of</span>
+                    <input asp-for="ClassYear" class="form-control" type="number"
+                           min="1900" max="2100" placeholder="2026" />
+                </div>
+                <span asp-validation-for="ClassYear" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Bio" class="form-label fw-semibold"></label>
+            <textarea asp-for="Bio" class="form-control" rows="4"
+                      placeholder="Tell others a little about yourself…"
+                      style="resize:vertical;"></textarea>
+            <div class="d-flex justify-content-end">
+                <small class="text-muted" id="bioCount">0 / 500</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex gap-2 justify-content-end">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg me-1"></i>Cancel
+        </a>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>Save Changes
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // ── Live photo preview ──────────────────────────────────────────────
+        document.getElementById('profileImageInput').addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('avatarPreviewWrap').innerHTML =
+                    `<img src="${e.target.result}"
+                          style="object-fit:cover;border-radius:50%;width:100px;height:100px;
+                                 border:3px solid var(--secondary-color);">`;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // ── Bio character counter ───────────────────────────────────────────
+        const bioArea  = document.getElementById('Bio');
+        const bioCount = document.getElementById('bioCount');
+
+        function updateCount() {
+            bioCount.textContent = `${bioArea.value.length} / 500`;
+        }
+
+        bioArea.addEventListener('input', updateCount);
+        updateCount(); // initialise on load
+    </script>
+}

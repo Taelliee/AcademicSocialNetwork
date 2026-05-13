@@ -1,0 +1,71 @@
+@using AcademicSocialNetwork.Models
+    @model AcademicSocialNetwork.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Create Account";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<h4 class="auth-title">Create your account</h4>
+<p class="text-muted small mb-4">Join the Academic Social Network</p>
+
+<form asp-action="Register" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+    <div class="mb-3">
+        <label asp-for="FullName" class="form-label">Full Name</label>
+        <input asp-for="FullName" class="form-control" placeholder="Jane Smith" autofocus />
+        <span asp-validation-for="FullName" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label">Email address</label>
+        <input asp-for="Email" class="form-control" placeholder="you@university.edu" />
+        <span asp-validation-for="Email" class="text-danger small"></span>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <label asp-for="Major" class="form-label">
+                Major <span class="text-muted">(optional)</span>
+            </label>
+            <select asp-for="Major"
+                    asp-items="Html.GetEnumSelectList<Major>()"
+                    class="form-select">
+                <option value="">— Select your major —</option>
+            </select>
+        </div>
+        <div class="col">
+            <label asp-for="ClassYear" class="form-label">
+                Class Year <span class="text-muted">(optional)</span>
+            </label>
+            <input asp-for="ClassYear" class="form-control" type="number"
+                   min="1900" max="2100" placeholder="e.g. 2026" />
+            <span asp-validation-for="ClassYear" class="text-danger small"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label">Password</label>
+        <input asp-for="Password" class="form-control" placeholder="At least 6 characters" />
+        <span asp-validation-for="Password" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+        <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" />
+        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100 mb-3">Create Account</button>
+
+    <p class="text-center small mb-0">
+        Already have an account?
+        <a asp-action="Login" class="auth-link">Sign in</a>
+    </p>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

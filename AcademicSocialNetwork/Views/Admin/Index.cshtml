@@ -1,0 +1,144 @@
+@model List<AcademicSocialNetwork.Models.User>
+@using System.Security.Claims
+@using AcademicSocialNetwork.Helpers
+@using AcademicSocialNetwork.Models
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="mb-0" style="color: var(--primary-color);">
+            <i class="bi bi-shield-fill me-2"></i>Admin Dashboard
+        </h4>
+        <p class="text-muted small mb-0">@Model.Count user(s) registered</p>
+    </div>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Feed
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show py-2 small" role="alert">
+        <i class="bi bi-check-circle me-1"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show py-2 small" role="alert">
+        <i class="bi bi-exclamation-circle me-1"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="post-card p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr style="background-color: var(--light-gray); border-bottom: 2px solid var(--border-color);">
+                    <th class="px-4 py-3" style="color: var(--primary-color);">User</th>
+                    <th class="py-3"      style="color: var(--primary-color);">Email</th>
+                    <th class="py-3"      style="color: var(--primary-color);">Major</th>
+                    <th class="py-3"      style="color: var(--primary-color);">Joined</th>
+                    <th class="py-3"      style="color: var(--primary-color);">Role</th>
+                    <th class="py-3 text-end pe-4" style="color: var(--primary-color);">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    var majorDisplay = EnumExtensions.ParseOrNull<Major>(user.Major) is { } m
+                        ? m.GetDisplayName() : (user.Major ?? "—");
+
+                    var majorAbbr = EnumExtensions.ParseOrNull<Major>(user.Major) is { } ma
+                        ? ma.GetAbbreviation() : (user.Major ?? "—");
+
+                    <tr>
+                        <!-- User -->
+                        <td class="px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle avatar-circle-medium flex-shrink-0">
+                                    @AvatarHelper.GetInitials(user.FullName)
+                                </div>
+                                <div>
+                                    <div class="fw-semibold" style="color: var(--dark-color);">
+                                        @user.FullName
+                                    </div>
+                                    @if (user.ClassYear.HasValue)
+                                    {
+                                        <small class="text-muted">Class of @user.ClassYear</small>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Email -->
+                        <td class="small text-muted">@user.Email</td>
+
+                        <!-- Major -->
+                        <td class="small">
+                            @if (user.Major != null)
+                            {
+                                <span title="@majorDisplay" style="cursor:default;">@majorAbbr</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+
+                        <!-- Joined -->
+                        <td class="small text-muted" style="white-space: nowrap;">
+                            @user.CreatedAt.ToString("dd MMM yyyy")
+                        </td>
+
+                        <!-- Role -->
+                        <td>
+                            @if (user.IsAdmin)
+                            {
+                                <span class="badge" style="background-color: var(--secondary-color) !important;">
+                                    <i class="bi bi-shield-fill me-1"></i>Admin
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">User</span>
+                            }
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="text-end pe-4">
+                            @if (user.Id == currentUserId)
+                            {
+                                <span class="text-muted small fst-italic">You</span>
+                            }
+                            else
+                            {
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <form asp-action="ToggleAdmin" asp-route-id="@user.Id" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-sm @(user.IsAdmin ? "btn-outline-warning" : "btn-outline-primary")"
+                                                title="@(user.IsAdmin ? "Remove admin" : "Make admin")">
+                                            <i class="bi bi-shield@(user.IsAdmin ? "-x" : "-plus")"></i>
+                                        </button>
+                                    </form>
+                                    <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post"
+                                          onsubmit="return confirm('Delete @user.FullName? This cannot be undone.')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete user">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

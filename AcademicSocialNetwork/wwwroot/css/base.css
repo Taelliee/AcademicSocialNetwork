@@ -1,0 +1,133 @@
+﻿/* ── Variables ────────────────────────────────────────────────────────────── */
+:root {
+    --primary-color: #386641;
+    --secondary-color: #6A994E;
+    --tertiary-color: #A7C957;
+    --background-color: #F2E8CF;
+    --accent-color: #BC4749;
+    --dark-color: #2d3e2d;
+    --light-gray: #e8dcc4;
+    --border-color: #d9cdb3;
+    --text-muted: #6b7566;
+    --sidebar-bg: #ffffff;
+    --card-shadow: 0 2px 8px rgba(56, 102, 65, 0.1);
+}
+
+/* ── Reset & Root ─────────────────────────────────────────────────────────── */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--dark-color);
+    padding-top: 70px;
+    padding-bottom: 70px;
+}
+
+@media (min-width: 768px) {
+    body {
+        padding-bottom: 0;
+    }
+}
+
+/* ── Links ────────────────────────────────────────────────────────────────── */
+a {
+    color: var(--secondary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.link-primary {
+    color: var(--secondary-color) !important;
+}
+
+.link-primary:hover {
+    color: var(--primary-color) !important;
+}
+
+/* ── Bootstrap colour overrides ───────────────────────────────────────────── */
+.text-muted       { color: var(--text-muted) !important; }
+.text-primary     { color: var(--secondary-color) !important; }
+.bg-primary       { background-color: var(--secondary-color) !important; }
+.bg-accent        { background-color: var(--accent-color) !important; }
+.text-bg-primary  { background-color: var(--secondary-color) !important; color: white !important; }
+.alert-primary    { background-color: var(--tertiary-color) !important; border-color: var(--secondary-color) !important; color: var(--primary-color) !important; }
+.list-group-item-primary { background-color: var(--light-gray) !important; color: var(--primary-color) !important; }
+.table-primary    { background-color: var(--light-gray) !important; color: var(--primary-color) !important; }
+
+/* ── Utility states ────────────────────────────────────────────────────────── */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--text-muted);
+}
+
+.empty-state h5 {
+    margin-top: 1rem;
+    color: var(--primary-color);
+}
+
+.empty-state p {
+    color: var(--text-muted);
+}
+
+/* ── Focus ring ────────────────────────────────────────────────────────────── */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(106, 153, 78, 0.25) !important;
+}
+
+/* ── Custom Scrollbar ─────────────────────────────────────────────────────── */
+.left-sidebar::-webkit-scrollbar,
+.right-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.left-sidebar::-webkit-scrollbar-track,
+.right-sidebar::-webkit-scrollbar-track {
+    background: var(--light-gray);
+    border-radius: 10px;
+}
+
+.left-sidebar::-webkit-scrollbar-thumb,
+.right-sidebar::-webkit-scrollbar-thumb {
+    background: var(--secondary-color);
+    border-radius: 10px;
+}
+
+.left-sidebar::-webkit-scrollbar-thumb:hover,
+.right-sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}

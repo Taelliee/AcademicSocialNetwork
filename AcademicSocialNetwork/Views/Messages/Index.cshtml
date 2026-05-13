@@ -1,0 +1,224 @@
+﻿@using AcademicSocialNetwork.Helpers
+@using AcademicSocialNetwork.Models
+@model List<AcademicSocialNetwork.Models.Conversation>
+@{
+    ViewData["Title"] = "Messages";
+    ViewData["FullWidth"] = true;
+    var activeConversation = ViewBag.ActiveConversation as AcademicSocialNetwork.Models.Conversation;
+    int currentUserId      = ViewBag.CurrentUserId is int cu ? cu : 1;
+    var unreadCounts       = ViewBag.UnreadCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<div class="chat-layout">
+    <!-- ── Left panel: conversation list ── -->
+    <aside class="chat-sidebar">
+        <div class="chat-sidebar-header">
+            <h5 class="mb-0">Messages</h5>
+        </div>
+
+        <!-- New conversation search -->
+        <div class="chat-search-wrap p-2 border-bottom">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input id="userSearch" type="text"
+                       class="form-control border-start-0 ps-0"
+                       placeholder="Search people to message…"
+                       autocomplete="off" />
+            </div>
+            <ul id="userSearchResults" class="chat-search-dropdown list-unstyled mb-0 shadow-sm"
+                style="display:none;"></ul>
+        </div>
+
+        <!-- Conversation list -->
+        <div class="conversation-list">
+            @if (!Model.Any())
+            {
+                <p class="text-muted small text-center p-3">No conversations yet. Search for someone to start chatting!</p>
+            }
+            @foreach (var conv in Model)
+            {
+                var other    = conv.Participants.FirstOrDefault(p => p.UserId != currentUserId)?.User;
+                var lastMsg  = conv.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault();
+                var unread   = unreadCounts.GetValueOrDefault(conv.Id, 0);
+                var isActive = activeConversation?.Id == conv.Id;
+
+                <a href="@Url.Action("Open", "Messages", new { id = conv.Id })"
+                   class="conversation-item @(isActive ? "active" : "")">
+                    @if (!string.IsNullOrEmpty(other?.ProfileImageUrl))
+                    {
+                        <img src="@other.ProfileImageUrl" alt="@other.FullName"
+                             class="avatar-circle avatar-circle-small flex-shrink-0"
+                             style="object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <div class="avatar-circle avatar-circle-small flex-shrink-0">
+                            @(other?.FullName?.Length > 0 ? other.FullName[0] : '?')
+                        </div>
+                    }
+                    <div class="conversation-item-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold text-truncate">@(other?.FullName ?? "Unknown")</span>
+                            @if (conv.LastMessageAt.HasValue)
+                            {
+                                <span class="text-muted small ms-1 flex-shrink-0">
+                                    @conv.LastMessageAt.Value.ToString("HH:mm")
+                                </span>
+                            }
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small text-truncate">@(lastMsg?.Content ?? "No messages yet")</span>
+                            @if (unread > 0)
+                            {
+                                <span class="badge bg-accent ms-1 flex-shrink-0">@unread</span>
+                            }
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    </aside>
+
+    <!-- ── Right panel: message thread ── -->
+    <main class="chat-main">
+        @if (activeConversation == null)
+        {
+            <div class="chat-empty">
+                <i class="bi bi-chat-dots" style="font-size:3rem; color:var(--secondary-color);"></i>
+                <p class="mt-3 text-muted">Select a conversation or search for someone to start a new one.</p>
+            </div>
+        }
+        else
+        {
+            var otherUser    = activeConversation.Participants.FirstOrDefault(p => p.UserId != currentUserId)?.User;
+            var majorEnum    = EnumExtensions.ParseOrNull<Major>(otherUser?.Major);
+            var majorDisplay = majorEnum?.GetDisplayName() ?? otherUser?.Major ?? "";
+
+            <div class="chat-thread-header">
+                <div class="avatar-circle avatar-circle-small">
+                    @(otherUser?.FullName?[0] ?? '?')
+                </div>
+                <div class="ms-2">
+                    <div class="fw-semibold">@(otherUser?.FullName ?? "Unknown")</div>
+                    <div class="text-muted small">@majorDisplay</div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                @foreach (var msg in activeConversation.Messages)
+                {
+                    var isMine = msg.SenderId == currentUserId;
+                    <div class="chat-bubble-row @(isMine ? "mine" : "theirs")">
+                        @if (!isMine)
+                        {
+                            @if (!string.IsNullOrEmpty(msg.Sender?.ProfileImageUrl))
+                            {
+                                <img src="@msg.Sender.ProfileImageUrl" alt="@msg.Sender.FullName"
+                                     class="avatar-circle avatar-circle-tiny flex-shrink-0"
+                                     style="object-fit:cover;" />
+                            }
+                            else
+                            {
+                                <div class="avatar-circle avatar-circle-tiny flex-shrink-0">
+                                    @(msg.Sender?.FullName?[0] ?? '?')
+                                </div>
+                            }
+                        }
+                        <div class="chat-bubble @(isMine ? "bubble-mine" : "bubble-theirs")">
+                            <p class="mb-0">@msg.Content</p>
+                            <span class="chat-bubble-time">@msg.CreatedAt.ToString("HH:mm")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="chat-input-bar">
+                <form asp-controller="Messages" asp-action="Send" method="post"
+                      class="d-flex gap-2 align-items-end">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="conversationId" value="@activeConversation.Id" />
+                    <textarea name="content" class="form-control chat-textarea"
+                              placeholder="Write a message…" rows="1" required
+                              id="messageInput"></textarea>
+                    <button type="submit" class="btn btn-primary btn-send">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </form>
+            </div>
+        }
+    </main>
+</div>
+
+<!-- Hidden form for starting a new conversation -->
+<form id="startConvForm" asp-controller="Messages" asp-action="StartConversation"
+      method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="targetUserId" name="targetUserId" />
+</form>
+
+@section Scripts {
+<script>
+    // ── Auto-scroll to bottom of messages ──
+    (function () {
+        const box = document.getElementById('chatMessages');
+        if (box) box.scrollTop = box.scrollHeight;
+    })();
+
+    // ── Auto-grow textarea ──
+    const textarea = document.getElementById('messageInput');
+    if (textarea) {
+        textarea.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+        textarea.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.closest('form').submit();
+            }
+        });
+    }
+
+    // ── User search ──
+    const searchInput   = document.getElementById('userSearch');
+    const searchResults = document.getElementById('userSearchResults');
+    const startForm     = document.getElementById('startConvForm');
+    const targetInput   = document.getElementById('targetUserId');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        const q = this.value.trim();
+        if (q.length < 2) { searchResults.style.display = 'none'; return; }
+
+        debounceTimer = setTimeout(async () => {
+            const res   = await fetch(`/Messages/SearchUsers?q=${encodeURIComponent(q)}`);
+            const users = await res.json();
+            searchResults.innerHTML = '';
+
+            if (!users.length) {
+                searchResults.innerHTML = '<li class="px-3 py-2 text-muted small">No users found.</li>';
+            } else {
+                users.forEach(u => {
+                    const li = document.createElement('li');
+                    li.className = 'chat-search-result';
+                    li.innerHTML = `<span class="fw-semibold">${u.fullName}</span><span class="text-muted small ms-2">${u.major ?? ''}</span>`;
+                    li.addEventListener('click', () => {
+                        targetInput.value = u.id;
+                        startForm.submit();
+                    });
+                    searchResults.appendChild(li);
+                });
+            }
+            searchResults.style.display = 'block';
+        }, 300);
+    });
+
+    document.addEventListener('click', e => {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target))
+            searchResults.style.display = 'none';
+    });
+</script>
+}

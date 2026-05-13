@@ -1,0 +1,18 @@
+@model List<AcademicSocialNetwork.Models.Event>
+
+@if (Model.Any())
+{
+    <div class="widget">
+        <h6>Upcoming Events</h6>
+        @foreach (var ev in Model)
+        {
+            <a href="#" class="event-item text-decoration-none text-reset">
+                <i class="bi bi-calendar"></i>
+                <div>
+                    <strong>@ev.Title</strong>
+                    <small class="d-block text-muted">@ev.StartTime.ToString("MMM d, h:mm tt")</small>
+                </div>
+            </a>
+        }
+    </div>
+}

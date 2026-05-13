@@ -1,0 +1,12 @@
+@model List<AcademicSocialNetwork.Models.Tag>
+
+@if (Model.Any())
+{
+    <div class="widget">
+        <h6>Trending Topics</h6>
+        @foreach (var tag in Model)
+        {
+            <a href="#" class="trending-tag">#@tag.Name</a>
+        }
+    </div>
+}

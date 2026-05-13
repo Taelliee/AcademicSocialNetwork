@@ -1,0 +1,31 @@
+@using AcademicSocialNetwork.Helpers
+@using AcademicSocialNetwork.Models
+@model List<AcademicSocialNetwork.Models.User>
+
+@if (Model.Any())
+{
+    <div class="widget">
+        <h6>Suggested Connections</h6>
+        @foreach (var user in Model)
+        {
+            var major       = EnumExtensions.ParseOrNull<Major>(user.Major);
+            var fullName    = major?.GetDisplayName() ?? user.Major ?? "Student";
+            var abbr        = major?.GetAbbreviation() ?? fullName;
+
+            <div class="suggestion-item">
+                <div class="avatar-circle avatar-circle-suggestion flex-shrink-0">
+                    @AvatarHelper.GetInitials(user.FullName)
+                </div>
+                <div class="suggestion-item-text">
+                    <strong class="d-block text-truncate" title="@user.FullName">@user.FullName</strong>
+                    <small class="d-block text-muted" title="@fullName">@abbr</small>
+                </div>
+                <form asp-controller="Connections" asp-action="Connect" method="post" class="flex-shrink-0 ms-auto">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="targetUserId" value="@user.Id" />
+                    <button type="submit" class="btn btn-sm btn-primary">Connect</button>
+                </form>
+            </div>
+        }
+    </div>
+}

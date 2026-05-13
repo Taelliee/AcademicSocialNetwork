@@ -1,0 +1,238 @@
+﻿@using AcademicSocialNetwork.Helpers
+@using AcademicSocialNetwork.Models
+@model AcademicSocialNetwork.ViewModels.ConnectionsViewModel
+@{
+    ViewData["Title"] = "My Connections";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="mb-0" style="color: var(--primary-color);">
+            <i class="bi bi-people me-2"></i>My Connections
+        </h4>
+        <p class="text-muted small mb-0">@Model.Accepted.Count connection(s)</p>
+    </div>
+    <a asp-action="Discover" class="btn btn-primary btn-sm">
+        <i class="bi bi-search me-1"></i>Find People
+    </a>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#connections">
+            Connections <span class="badge ms-1">@Model.Accepted.Count</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#requests">
+            Requests
+            @if (Model.Incoming.Count > 0)
+            {
+                <span class="badge ms-1" style="background-color: var(--accent-color) !important;">
+                    @Model.Incoming.Count
+                </span>
+            }
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#sent">
+            Sent <span class="badge ms-1">@Model.Outgoing.Count</span>
+        </a>
+    </li>
+</ul>
+
+<div class="tab-content">
+
+    <!-- ── Accepted Connections ─────────────────────────────────────── -->
+    <div class="tab-pane fade show active" id="connections">
+        @if (Model.Accepted.Any())
+        {
+            <div class="row g-3">
+                @foreach (var c in Model.Accepted)
+                {
+                    var other      = c.FollowerId == Model.CurrentUserId ? c.Following : c.Follower;
+                    var majorEnum  = EnumExtensions.ParseOrNull<Major>(other.Major);
+                    var majorFull  = majorEnum?.GetDisplayName() ?? other.Major ?? "Student";
+                    var majorAbbr  = majorEnum?.GetAbbreviation() ?? majorFull;
+
+                    <div class="col-md-6">
+                        <div class="post-card d-flex align-items-center gap-3 mb-0">
+                            <a asp-controller="Profile" asp-action="Index" asp-route-id="@other.Id"
+                               class="flex-shrink-0">
+                                @if (!string.IsNullOrEmpty(other.ProfileImageUrl))
+                                {
+                                    <img src="@other.ProfileImageUrl" alt="@other.FullName"
+                                         class="avatar-circle avatar-circle-connection"
+                                         style="object-fit:cover;" />
+                                }
+                                else
+                                {
+                                    <div class="avatar-circle avatar-circle-connection">
+                                        @AvatarHelper.GetInitials(other.FullName)
+                                    </div>
+                                }
+                            </a>
+                            <div class="flex-grow-1 min-w-0">
+                                <a asp-controller="Profile" asp-action="Index" asp-route-id="@other.Id"
+                                   class="fw-semibold d-block text-truncate"
+                                   style="color: var(--primary-color);">
+                                    @other.FullName
+                                </a>
+                                <small class="text-muted d-block" title="@majorFull">@majorAbbr</small>
+                                @if (other.ClassYear.HasValue)
+                                {
+                                    <small class="text-muted">Class of @other.ClassYear</small>
+                                }
+                            </div>
+                            <div class="d-flex flex-column gap-1 flex-shrink-0">
+                                <form asp-action="StartConversation" asp-controller="Messages" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="targetUserId" value="@other.Id" />
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm w-100"
+                                            title="Send message">
+                                        <i class="bi bi-chat me-1"></i>Message
+                                    </button>
+                                </form>
+                                <form asp-action="Remove" method="post"
+                                      onsubmit="return confirm('Remove @other.FullName from connections?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="connectionId" value="@c.Id" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="bi bi-person-x me-1"></i>Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="post-card text-center py-5">
+                <i class="bi bi-people" style="font-size:3rem; color:var(--text-muted);"></i>
+                <p class="text-muted mt-3 mb-3">You have no connections yet.</p>
+                <a asp-action="Discover" class="btn btn-primary">
+                    <i class="bi bi-search me-1"></i>Find People to Connect With
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- ── Incoming Requests ────────────────────────────────────────── -->
+    <div class="tab-pane fade" id="requests">
+        @if (Model.Incoming.Any())
+        {
+            @foreach (var c in Model.Incoming)
+            {
+                var majorEnum = EnumExtensions.ParseOrNull<Major>(c.Follower.Major);
+                var majorFull = majorEnum?.GetDisplayName() ?? c.Follower.Major ?? "Student";
+                var majorAbbr = majorEnum?.GetAbbreviation() ?? majorFull;
+
+                <div class="post-card d-flex align-items-center gap-3 mb-3">
+                    <a asp-controller="Profile" asp-action="Index" asp-route-id="@c.Follower.Id"
+                       class="flex-shrink-0">
+                        @if (!string.IsNullOrEmpty(c.Follower.ProfileImageUrl))
+                        {
+                            <img src="@c.Follower.ProfileImageUrl" alt="@c.Follower.FullName"
+                                 class="avatar-circle avatar-circle-connection"
+                                 style="object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <div class="avatar-circle avatar-circle-connection">
+                                @AvatarHelper.GetInitials(c.Follower.FullName)
+                            </div>
+                        }
+                    </a>
+                    <div class="flex-grow-1">
+                        <a asp-controller="Profile" asp-action="Index" asp-route-id="@c.Follower.Id"
+                           class="fw-semibold" style="color: var(--primary-color);">
+                            @c.Follower.FullName
+                        </a>
+                        <small class="d-block text-muted" title="@majorFull">@majorAbbr</small>
+                        <small class="text-muted">Sent @c.CreatedAt.ToString("dd MMM yyyy")</small>
+                    </div>
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <form asp-action="Accept" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="connectionId" value="@c.Id" />
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-check-lg me-1"></i>Accept
+                            </button>
+                        </form>
+                        <form asp-action="Reject" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="connectionId" value="@c.Id" />
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-x-lg me-1"></i>Decline
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="post-card text-center py-5">
+                <i class="bi bi-inbox" style="font-size:3rem; color:var(--text-muted);"></i>
+                <p class="text-muted mt-3 mb-0">No pending connection requests.</p>
+            </div>
+        }
+    </div>
+
+    <!-- ── Sent Requests ────────────────────────────────────────────── -->
+    <div class="tab-pane fade" id="sent">
+        @if (Model.Outgoing.Any())
+        {
+            @foreach (var c in Model.Outgoing)
+            {
+                var majorEnum = EnumExtensions.ParseOrNull<Major>(c.Following.Major);
+                var majorFull = majorEnum?.GetDisplayName() ?? c.Following.Major ?? "Student";
+                var majorAbbr = majorEnum?.GetAbbreviation() ?? majorFull;
+
+                <div class="post-card d-flex align-items-center gap-3 mb-3">
+                    <a asp-controller="Profile" asp-action="Index" asp-route-id="@c.Following.Id"
+                       class="flex-shrink-0">
+                        @if (!string.IsNullOrEmpty(c.Following.ProfileImageUrl))
+                        {
+                            <img src="@c.Following.ProfileImageUrl" alt="@c.Following.FullName"
+                                 class="avatar-circle avatar-circle-connection"
+                                 style="object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <div class="avatar-circle avatar-circle-connection">
+                                @AvatarHelper.GetInitials(c.Following.FullName)
+                            </div>
+                        }
+                    </a>
+                    <div class="flex-grow-1">
+                        <a asp-controller="Profile" asp-action="Index" asp-route-id="@c.Following.Id"
+                           class="fw-semibold" style="color: var(--primary-color);">
+                            @c.Following.FullName
+                        </a>
+                        <small class="d-block text-muted" title="@majorFull">@majorAbbr</small>
+                        <small class="text-muted">Sent @c.CreatedAt.ToString("dd MMM yyyy")</small>
+                    </div>
+                    <form asp-action="Cancel" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="connectionId" value="@c.Id" />
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x-lg me-1"></i>Cancel
+                        </button>
+                    </form>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="post-card text-center py-5">
+                <i class="bi bi-send" style="font-size:3rem; color:var(--text-muted);"></i>
+                <p class="text-muted mt-3 mb-0">No sent requests.</p>
+            </div>
+        }
+    </div>
+
+</div>

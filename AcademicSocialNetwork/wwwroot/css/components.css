@@ -1,0 +1,155 @@
+﻿/* ── Avatars ──────────────────────────────────────────────────────────────── */
+.avatar-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #A7C957;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.avatar-circle-tiny       { width: 28px;  height: 28px;  font-size: 0.7rem; }
+.avatar-circle-small      { width: 32px;  height: 32px;  font-size: 0.75rem; border: 2px solid var(--background-color); }
+.avatar-circle-medium     { width: 48px;  height: 48px;  font-size: 1rem;    border: 2px solid var(--secondary-color); }
+.avatar-circle-large      { width: 80px;  height: 80px;  font-size: 1.8rem;  border: 3px solid var(--secondary-color); }
+.avatar-circle-xlarge     { width: 150px; height: 150px; font-size: 3.5rem;  border: 5px solid var(--secondary-color); box-shadow: var(--card-shadow); }
+.avatar-circle-suggestion {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    max-width: 48px;
+    aspect-ratio: 1 / 1;
+    display: flex !important;
+    font-size: 1rem;
+    border: 2px solid var(--secondary-color);
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    flex-shrink: 0;
+}
+.avatar-circle-connection { width: 60px; height: 60px; font-size: 1.2rem; border: 2px solid var(--secondary-color); }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn {
+    border-radius: 6px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-sm { padding: 0.4rem 1rem; font-size: 0.875rem; }
+
+.btn-primary {
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+    color: white !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+    box-shadow: 0 0 0 0.2rem rgba(106, 153, 78, 0.25) !important;
+}
+
+.btn-check:focus + .btn-primary,
+.btn-primary:focus {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 0.2rem rgba(106, 153, 78, 0.25) !important;
+}
+
+.btn-primary:disabled,
+.btn-primary.disabled {
+    background-color: var(--light-gray) !important;
+    border-color: var(--border-color) !important;
+}
+
+.btn-outline-primary {
+    color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+    background-color: transparent;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+    color: white !important;
+}
+
+.btn-secondary {
+    background-color: var(--tertiary-color) !important;
+    border-color: var(--tertiary-color) !important;
+    color: var(--dark-color) !important;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active {
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+    color: white !important;
+}
+
+.btn-outline-secondary {
+    color: var(--text-muted) !important;
+    border-color: var(--border-color) !important;
+    background-color: transparent;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+    background-color: var(--light-gray) !important;
+    border-color: var(--border-color) !important;
+    color: var(--secondary-color) !important;
+}
+
+.btn-link       { color: var(--secondary-color) !important; }
+.btn-link:hover { color: var(--primary-color) !important; }
+
+/* ── Badges ───────────────────────────────────────────────────────────────── */
+.badge         { background-color: var(--accent-color) !important; color: white !important; }
+.badge-primary { background-color: var(--secondary-color) !important; }
+
+/* ── Forms ────────────────────────────────────────────────────────────────── */
+.form-control       { border-color: var(--border-color); }
+.form-control:focus { border-color: var(--secondary-color) !important; box-shadow: 0 0 0 0.2rem rgba(106, 153, 78, 0.25) !important; }
+
+/* ── Dropdowns ────────────────────────────────────────────────────────────── */
+.dropdown-menu       { border: 1px solid var(--border-color); box-shadow: var(--card-shadow); }
+.dropdown-item       { color: var(--dark-color); }
+.dropdown-item:hover { background-color: var(--light-gray); color: var(--secondary-color); }
+.dropdown-divider    { border-color: var(--border-color); }
+
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+.nav-tabs               { border-bottom: 2px solid var(--border-color); }
+.nav-tabs .nav-link     { color: var(--text-muted); border: none; padding: 0.75rem 1.5rem; }
+.nav-tabs .nav-link:hover { color: var(--secondary-color); border-color: transparent; }
+.nav-tabs .nav-link.active {
+    color: var(--primary-color) !important;
+    background-color: transparent !important;
+    border-bottom: 3px solid var(--secondary-color) !important;
+}
+
+/* ── Post Filter Pills ────────────────────────────────────────────────────── */
+.post-filters .nav-pills .nav-link        { color: var(--text-muted); border-radius: 20px; padding: 0.5rem 1.25rem; }
+.post-filters .nav-pills .nav-link.active { background-color: var(--secondary-color) !important; color: white !important; }
+.post-filters .nav-pills .nav-link:hover  { background-color: var(--light-gray); color: var(--secondary-color); }
+
+/* ── Liked heart colour ───────────────────────────────────────────────────── */
+.bi-heart-fill { color: var(--accent-color); }
+
+/* ── Suggestion item text column ─────────────────────────────────────────── */
+.suggestion-item-text {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+}

@@ -1,0 +1,288 @@
+﻿@using AcademicSocialNetwork.Helpers
+@using System.Security.Claims
+@model IEnumerable<AcademicSocialNetwork.Models.Post>
+@{
+    ViewData["Title"] = "Home Feed";
+    var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var isAdmin       = User.IsInRole("Admin");
+}
+
+<!-- Create Post -->
+<div class="create-post">
+    <h5 class="mb-3">What's on your mind?</h5>
+    <form asp-controller="Post" asp-action="Create" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <textarea class="form-control" name="content" id="postContent" rows="3"
+                  placeholder="Share your thoughts, ask questions, or start a discussion..."></textarea>
+
+        <!-- Photo Preview -->
+        <div id="photoPreviewContainer" class="d-none mt-2">
+            <div class="photo-preview-wrapper">
+                <img id="photoPreview" src="#" alt="Preview" class="post-image-preview" />
+                <button type="button" class="photo-remove-btn" onclick="removePhoto()">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Link Input -->
+        <div id="linkInputContainer" class="d-none mt-2">
+            <div class="link-fields">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent">
+                        <i class="bi bi-link-45deg" style="color: var(--secondary-color);"></i>
+                    </span>
+                    <input type="url" name="linkUrl" id="linkUrlInput"
+                           class="form-control" placeholder="https://example.com" />
+                    <button type="button" class="btn btn-outline-secondary" onclick="removeLink()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden file input -->
+        <input type="file" name="photo" id="photoInput" accept="image/*" class="d-none"
+               onchange="previewPhoto(this)" />
+
+        <div class="create-post-actions mt-2">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        onclick="document.getElementById('photoInput').click()">
+                    <i class="bi bi-image"></i> Photo
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        onclick="toggleLink()">
+                    <i class="bi bi-link-45deg"></i> Link
+                </button>
+            </div>
+            <button type="submit" class="btn btn-primary">Post</button>
+        </div>
+    </form>
+</div>
+
+<!-- Filter Tabs -->
+<div class="post-filters mb-3">
+    <ul class="nav nav-pills">
+        <li class="nav-item"><a class="nav-link active" href="#">All Posts</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Following</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Study Groups</a></li>
+    </ul>
+</div>
+
+<!-- Posts Feed -->
+@if (Model != null && Model.Any())
+{
+    @foreach (var post in Model)
+    {
+        <div class="post-card">
+            <div class="post-header">
+                <a asp-controller="Profile" asp-action="Index" asp-route-id="@post.Author?.Id">
+                    @if (!string.IsNullOrEmpty(post.Author?.ProfileImageUrl))
+                    {
+                        <img src="@post.Author.ProfileImageUrl" alt="@post.Author.FullName"
+                             class="avatar-circle avatar-circle-medium"
+                             style="object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <div class="avatar-circle avatar-circle-medium @AvatarHelper.GetAvatarColorClass(post.Author?.FullName ?? "")">
+                            @AvatarHelper.GetInitials(post.Author?.FullName ?? "?")
+                        </div>
+                    }
+                </a>
+                <div class="post-author flex-grow-1 ms-2">
+                    <h6>
+                        <a asp-controller="Profile" asp-action="Index" asp-route-id="@post.Author?.Id">
+                            @(post.Author?.FullName ?? "Unknown User")
+                        </a>
+                    </h6>
+                    <small>
+                        @{
+                            var majorEnum    = EnumExtensions.ParseOrNull<AcademicSocialNetwork.Models.Major>(post.Author?.Major);
+                            var majorDisplay = majorEnum?.GetDisplayName() ?? post.Author?.Major ?? "Unknown";
+                        }
+                        @majorDisplay •
+                        @post.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                        @if (post.IsEdited) { <span class="fst-italic">(edited)</span> }
+                    </small>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-link text-muted" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-bookmark"></i> Save Post</a></li>
+                        @if (post.Author?.Id == currentUserId || isAdmin)
+                        {
+                            <li>
+                                <form asp-controller="Post" asp-action="Delete" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@post.Id" />
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <div class="post-content">
+                <p>@post.Content</p>
+
+                @if (!string.IsNullOrEmpty(post.ImageUrl))
+                {
+                    <div class="post-image-container mt-2">
+                        <img src="@post.ImageUrl" alt="Post image" class="post-image" />
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(post.LinkUrl))
+                {
+                    <a href="@post.LinkUrl" target="_blank" rel="noopener noreferrer"
+                       class="post-link-preview mt-2">
+                        <div class="post-link-icon">
+                            <i class="bi bi-link-45deg"></i>
+                        </div>
+                        <div class="post-link-body">
+                            <span class="post-link-url">@post.LinkUrl</span>
+                        </div>
+                        <div class="post-link-arrow">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                        </div>
+                    </a>
+                }
+
+                @if (post.PostTags.Any())
+                {
+                    <div class="mt-2">
+                        @foreach (var pt in post.PostTags)
+                        {
+                            <span class="trending-tag">#@pt.Tag.Name</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="post-actions">
+                <form asp-controller="Post" asp-action="Like" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="postId" value="@post.Id" />
+                    <button type="submit" class="post-action border-0 bg-transparent">
+                        <i class="bi @(post.Likes.Any(l => !l.IsDeleted && l.UserId == currentUserId) ? "bi-heart-fill" : "bi-heart")"></i>
+                        <span>@post.LikeCount</span>
+                    </button>
+                </form>
+                <button class="post-action border-0 bg-transparent"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#comments-@post.Id">
+                    <i class="bi bi-chat"></i>
+                    <span>@post.CommentCount Comment@(post.CommentCount != 1 ? "s" : "")</span>
+                </button>
+                <button class="post-action border-0 bg-transparent">
+                    <i class="bi bi-share"></i>
+                    <span>Share</span>
+                </button>
+            </div>
+
+            <div class="collapse" id="comments-@post.Id">
+                <div class="pt-3 border-top mt-2">
+                    @foreach (var comment in post.Comments.OrderBy(c => c.CreatedAt))
+                    {
+                        <div class="d-flex gap-2 mb-2">
+                            <div class="avatar-circle avatar-circle-small flex-shrink-0">
+                                @AvatarHelper.GetInitials(comment.Author?.FullName ?? "?")
+                            </div>
+                            <div class="bg-light rounded p-2 flex-grow-1">
+                                <strong style="color: var(--primary-color); font-size: 0.85rem;">
+                                    @(comment.Author?.FullName ?? "Unknown")
+                                </strong>
+                                <p class="mb-0 small">@comment.Content</p>
+                                <small class="text-muted">@comment.CreatedAt.ToString("MMM dd, HH:mm")</small>
+                            </div>
+                        </div>
+                    }
+                    <form asp-controller="Post" asp-action="Comment" method="post" class="d-flex gap-2 mt-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="postId" value="@post.Id" />
+                        <div class="avatar-circle avatar-circle-small flex-shrink-0">
+                            @{
+                                var profileImgUrl = User.FindFirst("ProfileImageUrl")?.Value;
+                            }
+                            @if (!string.IsNullOrEmpty(profileImgUrl))
+                            {
+                                <img src="@profileImgUrl" alt="me"
+                                     class="avatar-circle avatar-circle-small"
+                                     style="object-fit:cover;" />
+                            }
+                            else
+                            {
+                                @AvatarHelper.GetInitials(User.Identity?.Name ?? "?")
+                            }
+                        </div>
+                        <div class="input-group">
+                            <input type="text" name="content" class="form-control form-control-sm"
+                                   placeholder="Write a comment..." />
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="post-card text-center">
+        <div class="py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-muted);"></i>
+            <h5 class="mt-3">No posts yet</h5>
+            <p class="text-muted">Start connecting with classmates to see their posts here!</p>
+            <a asp-controller="Connections" asp-action="Discover" class="btn btn-primary">Find Connections</a>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+    function previewPhoto(input) {
+        const container = document.getElementById('photoPreviewContainer');
+        const preview   = document.getElementById('photoPreview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                container.classList.remove('d-none');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removePhoto() {
+        document.getElementById('photoInput').value = '';
+        document.getElementById('photoPreview').src = '#';
+        document.getElementById('photoPreviewContainer').classList.add('d-none');
+    }
+
+    function toggleLink() {
+        const container = document.getElementById('linkInputContainer');
+        const isHidden  = container.classList.contains('d-none');
+        container.classList.toggle('d-none', !isHidden);
+        if (isHidden) {
+            document.getElementById('linkUrlInput').focus();
+        } else {
+            document.getElementById('linkUrlInput').value = '';
+        }
+    }
+
+    function removeLink() {
+        document.getElementById('linkUrlInput').value = '';
+        document.getElementById('linkInputContainer').classList.add('d-none');
+    }
+</script>
+}

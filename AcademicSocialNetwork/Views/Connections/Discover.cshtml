@@ -1,0 +1,109 @@
+@using AcademicSocialNetwork.Helpers
+@using AcademicSocialNetwork.Models
+@model List<AcademicSocialNetwork.Models.User>
+@{
+    ViewData["Title"] = "Discover People";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="mb-0" style="color: var(--primary-color);">
+            <i class="bi bi-search me-2"></i>Discover People
+        </h4>
+        <p class="text-muted small mb-0">@Model.Count person(s) you haven't connected with yet</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-people me-1"></i>My Connections
+    </a>
+</div>
+
+@if (Model.Any())
+{
+    <div class="post-card mb-4 py-2">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input id="discoverSearch" type="text" class="form-control border-start-0 ps-0"
+                   placeholder="Filter by name or major…" />
+        </div>
+    </div>
+
+    <div class="row g-3" id="discoverList">
+        @foreach (var user in Model)
+        {
+            var majorEnum  = EnumExtensions.ParseOrNull<Major>(user.Major);
+            var majorFull  = majorEnum?.GetDisplayName() ?? user.Major ?? "Student";
+            var majorAbbr  = majorEnum?.GetAbbreviation() ?? majorFull;
+
+            <div class="col-md-6 discover-item"
+                 data-name="@user.FullName.ToLower()"
+                 data-major="@majorFull.ToLower()">
+                <div class="post-card d-flex align-items-center gap-3 mb-0 h-100">
+                    <a asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id"
+                       class="flex-shrink-0">
+                        <div class="avatar-circle avatar-circle-connection">
+                            @AvatarHelper.GetInitials(user.FullName)
+                        </div>
+                    </a>
+                    <div class="flex-grow-1 min-w-0">
+                        <a asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id"
+                           class="fw-semibold d-block text-truncate"
+                           style="color: var(--primary-color);">
+                            @user.FullName
+                        </a>
+                        <small class="text-muted d-block" title="@majorFull">@majorAbbr</small>
+                        @if (user.ClassYear.HasValue)
+                        {
+                            <small class="text-muted">Class of @user.ClassYear</small>
+                        }
+                    </div>
+                    <div class="flex-shrink-0">
+                        <form asp-action="Connect" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="targetUserId" value="@user.Id" />
+                            <input type="hidden" name="returnUrl" value="/Connections/Discover" />
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-person-plus me-1"></i>Connect
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <p id="noResults" class="text-center text-muted mt-4" style="display:none;">
+        No people match your search.
+    </p>
+}
+else
+{
+    <div class="post-card text-center py-5">
+        <i class="bi bi-emoji-smile" style="font-size:3rem; color:var(--text-muted);"></i>
+        <p class="text-muted mt-3 mb-0">You're connected with everyone!</p>
+    </div>
+}
+
+@section Scripts {
+<script>
+    const input     = document.getElementById('discoverSearch');
+    const items     = document.querySelectorAll('.discover-item');
+    const noResults = document.getElementById('noResults');
+
+    if (input) {
+        input.addEventListener('input', function () {
+            const q       = this.value.toLowerCase().trim();
+            let   visible = 0;
+
+            items.forEach(el => {
+                const match = el.dataset.name.includes(q) || el.dataset.major.includes(q);
+                el.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            noResults.style.display = visible === 0 ? 'block' : 'none';
+        });
+    }
+</script>
+}

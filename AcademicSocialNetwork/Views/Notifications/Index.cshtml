@@ -1,0 +1,61 @@
+@using AcademicSocialNetwork.Models
+@model List<AcademicSocialNetwork.Models.Notification>
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="post-card mb-3 p-3">
+    <h5 class="mb-0" style="color: var(--primary-color);">
+        <i class="bi bi-bell me-2"></i>Notifications
+    </h5>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="post-card text-center py-5">
+        <i class="bi bi-bell-slash" style="font-size:3rem; color:var(--text-muted);"></i>
+        <p class="text-muted mt-3">You have no notifications yet.</p>
+    </div>
+}
+else
+{
+    <div class="post-card p-0">
+        @foreach (var n in Model)
+        {
+            var icon = n.Type switch
+            {
+                NotificationType.Like       => "bi-heart-fill text-danger",
+                NotificationType.Comment    => "bi-chat-fill text-primary",
+                NotificationType.Follow     => "bi-person-plus-fill text-success",
+                NotificationType.Message    => "bi-chat-dots-fill text-info",
+                NotificationType.Mention    => "bi-at text-warning",
+                NotificationType.EventInvite  => "bi-calendar-event-fill text-secondary",
+                NotificationType.GroupInvite  => "bi-collection-fill text-secondary",
+                _                           => "bi-bell-fill text-muted"
+            };
+
+            <div class="d-flex align-items-start gap-3 px-3 py-3 border-bottom @(!n.IsRead ? "bg-light" : "")">
+                <div class="flex-shrink-0 mt-1">
+                    <i class="bi @icon fs-5"></i>
+                </div>
+                <div class="flex-grow-1">
+                    @if (!string.IsNullOrEmpty(n.LinkUrl))
+                    {
+                        <a href="@n.LinkUrl" class="text-decoration-none text-reset stretched-link">
+                            <p class="mb-0">@n.Content</p>
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="mb-0">@n.Content</p>
+                    }
+                    <small class="text-muted">@n.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                </div>
+                @if (!n.IsRead)
+                {
+                    <span class="badge rounded-pill bg-accent flex-shrink-0 align-self-center">New</span>
+                }
+            </div>
+        }
+    </div>
+}

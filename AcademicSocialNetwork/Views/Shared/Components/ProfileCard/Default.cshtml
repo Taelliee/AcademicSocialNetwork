@@ -1,0 +1,36 @@
+@using AcademicSocialNetwork.Helpers
+@using AcademicSocialNetwork.Models
+@model AcademicSocialNetwork.ViewComponents.ProfileCardModel
+
+@{
+    var majorEnum    = EnumExtensions.ParseOrNull<Major>(Model.Major);
+    var majorDisplay = majorEnum?.GetDisplayName() ?? Model.Major;
+}
+
+<div class="profile-card">
+    @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+    {
+        <img src="@Model.ProfileImageUrl" alt="@Model.FullName"
+             class="avatar-circle avatar-circle-large"
+             style="object-fit:cover;" />
+    }
+    else
+    {
+        <div class="avatar-circle avatar-circle-large @AvatarHelper.GetAvatarColorClass(Model.FullName)">
+            @AvatarHelper.GetInitials(Model.FullName)
+        </div>
+    }
+    <h5>@Model.FullName</h5>
+    @if (!string.IsNullOrEmpty(majorDisplay))
+    {
+        <p class="text-muted small mb-0">@majorDisplay</p>
+    }
+    @if (Model.ClassYear.HasValue)
+    {
+        <p class="text-muted small">Class of @Model.ClassYear</p>
+    }
+    <div class="profile-stats">
+        <div><strong>@Model.ConnectionsCount</strong><small>Connections</small></div>
+        <div><strong>@Model.PostsCount</strong><small>Posts</small></div>
+    </div>
+</div>
