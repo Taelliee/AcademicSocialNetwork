@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -23,7 +22,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -39,7 +37,7 @@ using (var scope = app.Services.CreateScope())
     {
         db.Database.Migrate();
 
-        // Replace placeholder "hashed" passwords with real hashes
+        // Replaces placeholder "hashed" passwords with real hashes
         var seedUsers = db.Users.Where(u => u.PasswordHash == "hashed").ToList();
         if (seedUsers.Count > 0)
         {

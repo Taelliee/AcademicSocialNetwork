@@ -18,17 +18,5 @@ namespace AcademicSocialNetwork.Helpers
             // First and last name initials
             return $"{names[0][0]}{names[^1][0]}".ToUpper();
         }
-
-        public static string GetAvatarColorClass(string fullName)
-        {
-            if (string.IsNullOrWhiteSpace(fullName))
-                return "avatar-color-1";
-
-            // Generate consistent color based on name hash
-            int hash = fullName.GetHashCode();
-            int colorIndex = Math.Abs(hash % 6) + 1;
-
-            return $"avatar-color-{colorIndex}";
-        }
     }
 }

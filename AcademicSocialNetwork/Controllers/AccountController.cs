@@ -44,7 +44,13 @@ public class AccountController : Controller
             return View(model);
         }
 
-        user.IsOnline   = true;
+        if (user.IsDeleted)
+        {
+            ModelState.AddModelError(string.Empty, "This account is no longer available.");
+            return View(model);
+        }
+
+        user.IsOnline = true;
         user.LastActive = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 

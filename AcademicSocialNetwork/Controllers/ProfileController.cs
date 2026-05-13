@@ -6,7 +6,7 @@ using AcademicSocialNetwork.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication; // Add this using directive at the top
+using Microsoft.AspNetCore.Authentication;
 
 namespace AcademicSocialNetwork.Controllers;
 
@@ -112,7 +112,6 @@ public class ProfileController : Controller
 
         await _db.SaveChangesAsync();
 
-        // Re-issue the auth cookie so the ProfileImageUrl claim reflects the new photo
         var claims = new List<System.Security.Claims.Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),

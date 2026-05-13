@@ -60,7 +60,7 @@ else
                         }
                         else
                         {
-                            <div class="avatar-circle avatar-circle-medium @AvatarHelper.GetAvatarColorClass(user.FullName)">
+                            <div class="avatar-circle avatar-circle-medium">
                                 @AvatarHelper.GetInitials(user.FullName)
                             </div>
                         }
@@ -108,7 +108,7 @@ else
                         }
                         else
                         {
-                            <div class="avatar-circle avatar-circle-medium @AvatarHelper.GetAvatarColorClass(post.Author?.FullName ?? "")">
+                            <div class="avatar-circle avatar-circle-medium">
                                 @AvatarHelper.GetInitials(post.Author?.FullName ?? "?")
                             </div>
                         }

@@ -28,12 +28,58 @@ namespace AcademicSocialNetwork.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // User
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
 
-            // Connection — self-referencing many-to-many
+            modelBuilder.Entity<User>()
+                .HasQueryFilter(u => !u.IsDeleted);
+
+            modelBuilder.Entity<Post>()
+                .HasQueryFilter(p => !p.IsDeleted && !p.Author.IsDeleted);
+
+            modelBuilder.Entity<Comment>()
+                .HasQueryFilter(c => !c.IsDeleted
+                                  && !c.Author.IsDeleted
+                                  && !c.Post.IsDeleted
+                                  && !c.Post.Author.IsDeleted);
+
+            modelBuilder.Entity<Like>()
+                .HasQueryFilter(l => !l.IsDeleted
+                                  && !l.User.IsDeleted
+                                  && !l.Post.IsDeleted
+                                  && !l.Post.Author.IsDeleted);
+
+            modelBuilder.Entity<Connection>()
+                .HasQueryFilter(c => !c.Follower.IsDeleted && !c.Following.IsDeleted);
+
+            modelBuilder.Entity<Message>()
+                .HasQueryFilter(m => !m.IsDeleted && !m.Sender.IsDeleted);
+
+            modelBuilder.Entity<ConversationParticipant>()
+                .HasQueryFilter(cp => !cp.User.IsDeleted);
+
+            modelBuilder.Entity<Group>()
+                .HasQueryFilter(g => !g.Creator.IsDeleted);
+
+            modelBuilder.Entity<GroupMember>()
+                .HasQueryFilter(gm => !gm.User.IsDeleted);
+
+            modelBuilder.Entity<Event>()
+                .HasQueryFilter(e => !e.Organizer.IsDeleted);
+
+            modelBuilder.Entity<EventAttendee>()
+                .HasQueryFilter(ea => !ea.User.IsDeleted);
+
+            modelBuilder.Entity<Resource>()
+                .HasQueryFilter(r => !r.UploadedBy.IsDeleted);
+
+            modelBuilder.Entity<Notification>()
+                .HasQueryFilter(n => !n.User.IsDeleted && (n.Actor == null || !n.Actor.IsDeleted));
+
+            modelBuilder.Entity<PostTag>()
+                .HasQueryFilter(pt => !pt.Post.IsDeleted && !pt.Post.Author.IsDeleted);
+
             modelBuilder.Entity<Connection>()
                 .HasOne(c => c.Follower)
                 .WithMany(u => u.Following)
@@ -46,161 +92,138 @@ namespace AcademicSocialNetwork.Data
                 .HasForeignKey(c => c.FollowingId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Post ? Author
             modelBuilder.Entity<Post>()
                 .HasOne(p => p.Author)
                 .WithMany(u => u.Posts)
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Post ? Group (optional)
             modelBuilder.Entity<Post>()
                 .HasOne(p => p.Group)
                 .WithMany(g => g.Posts)
                 .HasForeignKey(p => p.GroupId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Comment ? Author
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.Author)
                 .WithMany(u => u.Comments)
                 .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Comment ? Post
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.Post)
                 .WithMany(p => p.Comments)
                 .HasForeignKey(c => c.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Comment ? ParentComment (self-referencing)
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.ParentComment)
                 .WithMany(c => c.Replies)
                 .HasForeignKey(c => c.ParentCommentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Like ? User
             modelBuilder.Entity<Like>()
                 .HasOne(l => l.User)
                 .WithMany(u => u.Likes)
                 .HasForeignKey(l => l.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Like ? Post
             modelBuilder.Entity<Like>()
                 .HasOne(l => l.Post)
                 .WithMany(p => p.Likes)
                 .HasForeignKey(l => l.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Message ? Sender
             modelBuilder.Entity<Message>()
                 .HasOne(m => m.Sender)
                 .WithMany(u => u.SentMessages)
                 .HasForeignKey(m => m.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Message ? Conversation
             modelBuilder.Entity<Message>()
                 .HasOne(m => m.Conversation)
                 .WithMany(c => c.Messages)
                 .HasForeignKey(m => m.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ConversationParticipant ? User
             modelBuilder.Entity<ConversationParticipant>()
                 .HasOne(cp => cp.User)
                 .WithMany()
                 .HasForeignKey(cp => cp.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ConversationParticipant ? Conversation
             modelBuilder.Entity<ConversationParticipant>()
                 .HasOne(cp => cp.Conversation)
                 .WithMany(c => c.Participants)
                 .HasForeignKey(cp => cp.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Group ? Creator
             modelBuilder.Entity<Group>()
                 .HasOne(g => g.Creator)
                 .WithMany()
                 .HasForeignKey(g => g.CreatorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // GroupMember ? User
             modelBuilder.Entity<GroupMember>()
                 .HasOne(gm => gm.User)
                 .WithMany(u => u.GroupMemberships)
                 .HasForeignKey(gm => gm.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // GroupMember ? Group
             modelBuilder.Entity<GroupMember>()
                 .HasOne(gm => gm.Group)
                 .WithMany(g => g.Members)
                 .HasForeignKey(gm => gm.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Event ? Organizer
             modelBuilder.Entity<Event>()
                 .HasOne(e => e.Organizer)
                 .WithMany()
                 .HasForeignKey(e => e.OrganizerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // EventAttendee ? User
             modelBuilder.Entity<EventAttendee>()
                 .HasOne(ea => ea.User)
                 .WithMany(u => u.EventAttendances)
                 .HasForeignKey(ea => ea.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // EventAttendee ? Event
             modelBuilder.Entity<EventAttendee>()
                 .HasOne(ea => ea.Event)
                 .WithMany(e => e.Attendees)
                 .HasForeignKey(ea => ea.EventId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Notification ? User
             modelBuilder.Entity<Notification>()
                 .HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Notification ? Actor (optional)
             modelBuilder.Entity<Notification>()
                 .HasOne(n => n.Actor)
                 .WithMany()
                 .HasForeignKey(n => n.ActorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Notification ? Post (optional)
             modelBuilder.Entity<Notification>()
                 .HasOne(n => n.Post)
                 .WithMany()
                 .HasForeignKey(n => n.PostId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // PostTag ? Post
             modelBuilder.Entity<PostTag>()
                 .HasOne(pt => pt.Post)
                 .WithMany(p => p.PostTags)
                 .HasForeignKey(pt => pt.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // PostTag ? Tag
             modelBuilder.Entity<PostTag>()
                 .HasOne(pt => pt.Tag)
                 .WithMany(t => t.PostTags)
                 .HasForeignKey(pt => pt.TagId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Resource ? UploadedBy
             modelBuilder.Entity<Resource>()
                 .HasOne(r => r.UploadedBy)
                 .WithMany()
@@ -214,11 +237,11 @@ namespace AcademicSocialNetwork.Data
         private static void SeedData(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasData(
-                new User { Id = 1, FullName = "Administrator",        Email = "admin@uni.bg",     PasswordHash = "hashed", IsAdmin = true,                                                                                         IsOnline = false, CreatedAt = new DateTime(2024, 1, 1) },
-                new User { Id = 2, FullName = "Elitsa Ilarionova",    Email = "elitsa@uni.bg",    PasswordHash = "hashed", Major = "SoftwareAndInternetTechnologies", ClassYear = 2023, Bio = "Passionate about technology.", IsOnline = true,  CreatedAt = new DateTime(2024, 1, 2) },
-                new User { Id = 3, FullName = "Vlado Gospodinov", Email = "vladislav@uni.bg", PasswordHash = "hashed", Major = "SoftwareEngineering",               ClassYear = 2025, Bio = "Love coding and algorithms.",    IsOnline = true,  CreatedAt = new DateTime(2024, 1, 3) },
-                new User { Id = 4, FullName = "Katerina Minkova",     Email = "katerina@uni.bg",  PasswordHash = "hashed", Major = "Mathematics",                        ClassYear = 2026, Bio = "Math enthusiast.",               IsOnline = false, CreatedAt = new DateTime(2024, 1, 4) },
-                new User { Id = 5, FullName = "Martin Petrov",        Email = "martin@uni.bg",    PasswordHash = "hashed", Major = "ComputerScience",                    ClassYear = 2024, Bio = "Thesis writing season.",          IsOnline = true,  CreatedAt = new DateTime(2024, 1, 5) }
+                new User { Id = 1, FullName = "Administrator", Email = "admin@uni.bg", PasswordHash = "hashed", IsAdmin = true, IsOnline = false, CreatedAt = new DateTime(2024, 1, 1) },
+                new User { Id = 2, FullName = "Elitsa Ilarionova", Email = "elitsa@uni.bg", PasswordHash = "hashed", Major = "SoftwareAndInternetTechnologies", ClassYear = 2023, Bio = "Passionate about technology.", IsOnline = true, CreatedAt = new DateTime(2024, 1, 2) },
+                new User { Id = 3, FullName = "Vlado Gospodinov", Email = "vladislav@uni.bg", PasswordHash = "hashed", Major = "SoftwareEngineering", ClassYear = 2025, Bio = "Love coding and algorithms.", IsOnline = true, CreatedAt = new DateTime(2024, 1, 3) },
+                new User { Id = 4, FullName = "Katerina Minkova", Email = "katerina@uni.bg", PasswordHash = "hashed", Major = "Mathematics", ClassYear = 2026, Bio = "Math enthusiast.", IsOnline = false, CreatedAt = new DateTime(2024, 1, 4) },
+                new User { Id = 5, FullName = "Martin Petrov", Email = "martin@uni.bg", PasswordHash = "hashed", Major = "ComputerScience", ClassYear = 2024, Bio = "Thesis writing season.", IsOnline = true, CreatedAt = new DateTime(2024, 1, 5) }
             );
 
             modelBuilder.Entity<Post>().HasData(

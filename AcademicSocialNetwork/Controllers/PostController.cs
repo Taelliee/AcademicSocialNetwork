@@ -90,9 +90,19 @@ public class PostController : Controller
     public async Task<IActionResult> Like(int postId)
     {
         var userId = CurrentUserId;
+        var actorName = User.Identity?.Name ?? "Someone";
+
+        var post = await _db.Posts
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Id == postId);
+
+        if (post == null)
+            return RedirectToAction("Index", "Home");
 
         var existing = await _db.Likes
             .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
+
+        var shouldNotify = false;
 
         if (existing == null)
         {
@@ -102,10 +112,27 @@ public class PostController : Controller
                 UserId    = userId,
                 CreatedAt = DateTime.UtcNow
             });
+
+            shouldNotify = true;
         }
         else
         {
             existing.IsDeleted = !existing.IsDeleted;
+            shouldNotify = !existing.IsDeleted;
+        }
+
+        if (shouldNotify && post.UserId != userId)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                Type      = NotificationType.Like,
+                Content   = $"{actorName} liked your post.",
+                UserId    = post.UserId,
+                ActorId   = userId,
+                PostId    = post.Id,
+                LinkUrl   = "/",
+                CreatedAt = DateTime.UtcNow
+            });
         }
 
         await _db.SaveChangesAsync();
@@ -118,6 +145,14 @@ public class PostController : Controller
     {
         if (!string.IsNullOrWhiteSpace(content))
         {
+            var actorName = User.Identity?.Name ?? "Someone";
+            var post = await _db.Posts
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.Id == postId);
+
+            if (post == null)
+                return RedirectToAction("Index", "Home");
+
             _db.Comments.Add(new Comment
             {
                 Content   = content,
@@ -125,6 +160,20 @@ public class PostController : Controller
                 UserId    = CurrentUserId,
                 CreatedAt = DateTime.UtcNow
             });
+
+            if (post.UserId != CurrentUserId)
+            {
+                _db.Notifications.Add(new Notification
+                {
+                    Type      = NotificationType.Comment,
+                    Content   = $"{actorName} commented on your post.",
+                    UserId    = post.UserId,
+                    ActorId   = CurrentUserId,
+                    PostId    = post.Id,
+                    LinkUrl   = "/",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
 
             await _db.SaveChangesAsync();
         }

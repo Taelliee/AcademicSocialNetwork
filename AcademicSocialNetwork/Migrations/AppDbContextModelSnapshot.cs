@@ -482,20 +482,11 @@ namespace AcademicSocialNetwork.Migrations
                     b.Property<int>("SenderId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
 
                     b.HasIndex("SenderId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Messages");
                 });
@@ -812,6 +803,9 @@ namespace AcademicSocialNetwork.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -822,6 +816,9 @@ namespace AcademicSocialNetwork.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsOnline")
@@ -856,6 +853,7 @@ namespace AcademicSocialNetwork.Migrations
                             Email = "admin@uni.bg",
                             FullName = "Administrator",
                             IsAdmin = true,
+                            IsDeleted = false,
                             IsOnline = false,
                             PasswordHash = "hashed"
                         },
@@ -868,6 +866,7 @@ namespace AcademicSocialNetwork.Migrations
                             Email = "elitsa@uni.bg",
                             FullName = "Elitsa Ilarionova",
                             IsAdmin = false,
+                            IsDeleted = false,
                             IsOnline = true,
                             Major = "SoftwareAndInternetTechnologies",
                             PasswordHash = "hashed"
@@ -879,8 +878,9 @@ namespace AcademicSocialNetwork.Migrations
                             ClassYear = 2025L,
                             CreatedAt = new DateTime(2024, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "vladislav@uni.bg",
-                            FullName = "Vladislav Gospodinov",
+                            FullName = "Vlado Gospodinov",
                             IsAdmin = false,
+                            IsDeleted = false,
                             IsOnline = true,
                             Major = "SoftwareEngineering",
                             PasswordHash = "hashed"
@@ -894,6 +894,7 @@ namespace AcademicSocialNetwork.Migrations
                             Email = "katerina@uni.bg",
                             FullName = "Katerina Minkova",
                             IsAdmin = false,
+                            IsDeleted = false,
                             IsOnline = false,
                             Major = "Mathematics",
                             PasswordHash = "hashed"
@@ -907,6 +908,7 @@ namespace AcademicSocialNetwork.Migrations
                             Email = "martin@uni.bg",
                             FullName = "Martin Petrov",
                             IsAdmin = false,
+                            IsDeleted = false,
                             IsOnline = true,
                             Major = "ComputerScience",
                             PasswordHash = "hashed"
@@ -1083,10 +1085,6 @@ namespace AcademicSocialNetwork.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("AcademicSocialNetwork.Models.User", null)
-                        .WithMany("ReceivedMessages")
-                        .HasForeignKey("UserId");
-
                     b.Navigation("Conversation");
 
                     b.Navigation("Sender");
@@ -1228,8 +1226,6 @@ namespace AcademicSocialNetwork.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("Posts");
-
-                    b.Navigation("ReceivedMessages");
 
                     b.Navigation("SentMessages");
                 });

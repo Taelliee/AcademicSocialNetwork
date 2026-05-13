@@ -32,6 +32,8 @@ public class User
     public DateTime? LastActive { get; set; }
     public bool IsOnline { get; set; }
     public bool IsAdmin { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
 
     // Navigation properties
     public ICollection<Post> Posts { get; set; } = new List<Post>();
@@ -42,7 +44,6 @@ public class User
     public ICollection<Connection> Following { get; set; } = new List<Connection>();
 
     public ICollection<Message> SentMessages { get; set; } = new List<Message>();
-    public ICollection<Message> ReceivedMessages { get; set; } = new List<Message>();
     public ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
     public ICollection<GroupMember> GroupMemberships { get; set; } = new List<GroupMember>();

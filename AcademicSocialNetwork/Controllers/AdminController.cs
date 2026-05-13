@@ -40,7 +40,8 @@ public class AdminController : Controller
         }
 
         var user = await _db.Users.FindAsync(id);
-        if (user == null) return NotFound();
+        if (user == null)
+            return NotFound();
 
         user.IsAdmin = !user.IsAdmin;
         await _db.SaveChangesAsync();
@@ -63,9 +64,13 @@ public class AdminController : Controller
         }
 
         var user = await _db.Users.FindAsync(id);
-        if (user == null) return NotFound();
+        if (user == null)
+            return NotFound();
 
-        _db.Users.Remove(user);
+        user.IsDeleted = true;
+        user.DeletedAt = DateTime.UtcNow;
+        user.IsOnline = false;
+
         await _db.SaveChangesAsync();
 
         TempData["Success"] = $"{user.FullName}'s account has been deleted.";

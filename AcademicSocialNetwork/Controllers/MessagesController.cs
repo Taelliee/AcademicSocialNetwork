@@ -137,6 +137,7 @@ public class MessagesController : Controller
             return RedirectToAction(nameof(Open), new { id = conversationId });
 
         var userId = CurrentUserId;
+        var actorName = User.Identity?.Name ?? "Someone";
 
         var isParticipant = await _db.ConversationParticipants
             .AnyAsync(p => p.ConversationId == conversationId && p.UserId == userId);
@@ -144,18 +145,40 @@ public class MessagesController : Controller
         if (!isParticipant)
             return Forbid();
 
+        var recipientIds = await _db.ConversationParticipants
+            .Where(p => p.ConversationId == conversationId && p.UserId != userId)
+            .Select(p => p.UserId)
+            .ToListAsync();
+
         _db.Messages.Add(new Message
         {
             ConversationId = conversationId,
             SenderId       = userId,
             Content        = content.Trim(),
-            Title          = string.Empty,
             CreatedAt      = DateTime.UtcNow
         });
 
         await _db.Conversations
             .Where(c => c.Id == conversationId)
             .ExecuteUpdateAsync(s => s.SetProperty(c => c.LastMessageAt, DateTime.UtcNow));
+
+        var trimmedContent = content.Trim();
+        var preview = trimmedContent.Length > 80
+            ? $"{trimmedContent[..77]}..."
+            : trimmedContent;
+
+        foreach (var recipientId in recipientIds)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                Type      = NotificationType.Message,
+                Content   = $"{actorName} sent you a message: {preview}",
+                UserId    = recipientId,
+                ActorId   = userId,
+                LinkUrl   = $"/Messages/Open/{conversationId}",
+                CreatedAt = DateTime.UtcNow
+            });
+        }
 
         await _db.SaveChangesAsync();
 

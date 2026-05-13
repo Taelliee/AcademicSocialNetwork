@@ -195,12 +195,11 @@
     gap: 0.75rem;
     padding: 0.75rem;
     border-bottom: 1px solid var(--border-color);
-    overflow: hidden; /* prevent the row itself from stretching */
+    overflow: hidden;
 }
 
 .suggestion-item:last-child { border-bottom: none; }
 
-/* Remove the old catch-all div rule — replaced by .suggestion-item-text */
 .suggestion-item strong { font-size: 0.9rem; color: var(--primary-color); }
 
 .trending-tag {

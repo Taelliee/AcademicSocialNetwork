@@ -69,6 +69,7 @@ public class ConnectionsController : Controller
     public async Task<IActionResult> Connect(int targetUserId, string? returnUrl = null)
     {
         var userId = CurrentUserId;
+        var actorName = User.Identity?.Name ?? "Someone";
 
         var exists = await _db.Connections
             .AnyAsync(c => c.FollowerId == userId && c.FollowingId == targetUserId);
@@ -82,6 +83,19 @@ public class ConnectionsController : Controller
                 Status      = ConnectionStatus.Pending,
                 CreatedAt   = DateTime.UtcNow
             });
+
+            if (targetUserId != userId)
+            {
+                _db.Notifications.Add(new Notification
+                {
+                    Type      = NotificationType.Follow,
+                    Content   = $"{actorName} sent you a connection request.",
+                    UserId    = targetUserId,
+                    ActorId   = userId,
+                    LinkUrl   = "/Connections",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
 
             await _db.SaveChangesAsync();
         }
@@ -98,11 +112,23 @@ public class ConnectionsController : Controller
     public async Task<IActionResult> Accept(int connectionId)
     {
         var connection = await _db.Connections.FindAsync(connectionId);
+        var actorName = User.Identity?.Name ?? "Someone";
 
         if (connection != null && connection.FollowingId == CurrentUserId)
         {
             connection.Status     = ConnectionStatus.Accepted;
             connection.AcceptedAt = DateTime.UtcNow;
+
+            _db.Notifications.Add(new Notification
+            {
+                Type      = NotificationType.Follow,
+                Content   = $"{actorName} accepted your connection request.",
+                UserId    = connection.FollowerId,
+                ActorId   = CurrentUserId,
+                LinkUrl   = "/Connections",
+                CreatedAt = DateTime.UtcNow
+            });
+
             await _db.SaveChangesAsync();
         }
 
