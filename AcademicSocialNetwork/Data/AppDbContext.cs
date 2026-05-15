@@ -268,8 +268,7 @@ namespace AcademicSocialNetwork.Data
             modelBuilder.Entity<Connection>().HasData(
                 new Connection { Id = 1, FollowerId = 2, FollowingId = 3, Status = ConnectionStatus.Accepted, CreatedAt = new DateTime(2024, 2, 1) },
                 new Connection { Id = 2, FollowerId = 2, FollowingId = 4, Status = ConnectionStatus.Accepted, CreatedAt = new DateTime(2024, 2, 2) },
-                new Connection { Id = 3, FollowerId = 3, FollowingId = 2, Status = ConnectionStatus.Accepted, CreatedAt = new DateTime(2024, 2, 3) },
-                new Connection { Id = 4, FollowerId = 4, FollowingId = 5, Status = ConnectionStatus.Pending,  CreatedAt = new DateTime(2024, 2, 4) }
+                new Connection { Id = 3, FollowerId = 4, FollowingId = 5, Status = ConnectionStatus.Pending,  CreatedAt = new DateTime(2024, 2, 4) }
             );
 
             modelBuilder.Entity<Tag>().HasData(

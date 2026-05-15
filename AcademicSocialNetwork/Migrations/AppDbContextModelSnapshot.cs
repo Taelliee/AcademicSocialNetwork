@@ -149,14 +149,6 @@ namespace AcademicSocialNetwork.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2024, 2, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            FollowerId = 3,
-                            FollowingId = 2,
-                            Status = 1
-                        },
-                        new
-                        {
-                            Id = 4,
                             CreatedAt = new DateTime(2024, 2, 4, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FollowerId = 4,
                             FollowingId = 5,
