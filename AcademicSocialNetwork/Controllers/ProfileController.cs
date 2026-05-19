@@ -57,10 +57,10 @@ public class ProfileController : Controller
 
         var vm = new EditProfileViewModel
         {
-            FullName        = user.FullName,
-            Major           = EnumExtensions.ParseOrNull<Major>(user.Major),
-            ClassYear       = user.ClassYear,
-            Bio             = user.Bio,
+            FullName = user.FullName,
+            Major = EnumExtensions.ParseOrNull<Major>(user.Major),
+            ClassYear = user.ClassYear,
+            Bio = user.Bio,
             ProfileImageUrl = user.ProfileImageUrl
         };
 
@@ -78,15 +78,15 @@ public class ProfileController : Controller
         var user = await _db.Users.FindAsync(CurrentUserId);
         if (user == null) return NotFound();
 
-        user.FullName  = model.FullName;
-        user.Major     = model.Major?.ToString();
+        user.FullName = model.FullName;
+        user.Major = model.Major?.ToString();
         user.ClassYear = model.ClassYear;
-        user.Bio       = model.Bio;
+        user.Bio = model.Bio;
 
         if (model.ProfileImage is { Length: > 0 })
         {
             var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-            var ext     = Path.GetExtension(model.ProfileImage.FileName).ToLowerInvariant();
+            var ext = Path.GetExtension(model.ProfileImage.FileName).ToLowerInvariant();
 
             if (!allowed.Contains(ext))
             {
@@ -100,7 +100,7 @@ public class ProfileController : Controller
                 if (System.IO.File.Exists(old)) System.IO.File.Delete(old);
             }
 
-            var folder   = Path.Combine(_env.WebRootPath, "uploads", "profiles");
+            var folder = Path.Combine(_env.WebRootPath, "uploads", "profiles");
             Directory.CreateDirectory(folder);
             var fileName = $"{Guid.NewGuid()}{ext}";
 
@@ -112,16 +112,16 @@ public class ProfileController : Controller
 
         await _db.SaveChangesAsync();
 
-        var claims = new List<System.Security.Claims.Claim>
+        var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name,           user.FullName),
-            new(ClaimTypes.Email,          user.Email),
-            new(ClaimTypes.Role,           user.IsAdmin ? "Admin" : "User"),
-            new("ProfileImageUrl",         user.ProfileImageUrl ?? "")
+            new(ClaimTypes.Name, user.FullName),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.IsAdmin ? "Admin" : "User"),
+            new("ProfileImageUrl", user.ProfileImageUrl ?? "")
         };
-        var identity  = new System.Security.Claims.ClaimsIdentity(claims, Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+        var identity  = new ClaimsIdentity(claims, Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
         await HttpContext.SignInAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
         return RedirectToAction(nameof(Index));

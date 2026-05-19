@@ -251,9 +251,9 @@ namespace AcademicSocialNetwork.Data
             );
 
             modelBuilder.Entity<Comment>().HasData(
-                new Comment { Id = 1, Content = "Great job! I have mine tomorrow.",           CreatedAt = new DateTime(2026, 5, 1, 11, 0, 0),  UserId = 4, PostId = 1 },
-                new Comment { Id = 2, Content = "Congratulations! That's a huge milestone!",  CreatedAt = new DateTime(2026, 4, 30, 14, 0, 0), UserId = 2, PostId = 3 },
-                new Comment { Id = 3, Content = "Amazing achievement! Best of luck!",         CreatedAt = new DateTime(2026, 4, 30, 16, 0, 0), UserId = 4, PostId = 3 }
+                new Comment { Id = 1, Content = "Great job! I have mine tomorrow.", CreatedAt = new DateTime(2026, 5, 1, 11, 0, 0), UserId = 4, PostId = 1 },
+                new Comment { Id = 2, Content = "Congratulations! That's a huge milestone!", CreatedAt = new DateTime(2026, 4, 30, 14, 0, 0), UserId = 2, PostId = 3 },
+                new Comment { Id = 3, Content = "Amazing achievement! Best of luck!", CreatedAt = new DateTime(2026, 4, 30, 16, 0, 0), UserId = 4, PostId = 3 }
             );
 
             modelBuilder.Entity<Like>().HasData(
@@ -273,9 +273,9 @@ namespace AcademicSocialNetwork.Data
 
             modelBuilder.Entity<Tag>().HasData(
                 new Tag { Id = 1, Name = "DataStructures", UseCount = 1, CreatedAt = new DateTime(2024, 1, 1) },
-                new Tag { Id = 2, Name = "StudyGroup",     UseCount = 1, CreatedAt = new DateTime(2024, 1, 1) },
-                new Tag { Id = 3, Name = "CampusLife",     UseCount = 0, CreatedAt = new DateTime(2024, 1, 1) },
-                new Tag { Id = 4, Name = "FinalExams",     UseCount = 0, CreatedAt = new DateTime(2024, 1, 1) }
+                new Tag { Id = 2, Name = "StudyGroup", UseCount = 1, CreatedAt = new DateTime(2024, 1, 1) },
+                new Tag { Id = 3, Name = "CampusLife", UseCount = 0, CreatedAt = new DateTime(2024, 1, 1) },
+                new Tag { Id = 4, Name = "FinalExams", UseCount = 0, CreatedAt = new DateTime(2024, 1, 1) }
             );
 
             modelBuilder.Entity<PostTag>().HasData(
@@ -284,9 +284,9 @@ namespace AcademicSocialNetwork.Data
             );
 
             modelBuilder.Entity<Notification>().HasData(
-                new Notification { Id = 1, Type = NotificationType.Like,    Content = "Vladislav Gospodinov liked your post.",        UserId = 2, ActorId = 3, PostId = 3, IsRead = false, CreatedAt = new DateTime(2026, 4, 30, 13, 30, 0) },
-                new Notification { Id = 2, Type = NotificationType.Comment, Content = "Katerina Minkova commented on your post.",     UserId = 2, ActorId = 4, PostId = 3, IsRead = false, CreatedAt = new DateTime(2026, 4, 30, 16, 0, 0) },
-                new Notification { Id = 3, Type = NotificationType.Follow,  Content = "Martin Petrov sent you a connection request.", UserId = 2, ActorId = 5,              IsRead = true,  CreatedAt = new DateTime(2024, 2, 4) }
+                new Notification { Id = 1, Type = NotificationType.Like, Content = "Vladislav Gospodinov liked your post.", UserId = 2, ActorId = 3, PostId = 3, IsRead = false, CreatedAt = new DateTime(2026, 4, 30, 13, 30, 0) },
+                new Notification { Id = 2, Type = NotificationType.Comment, Content = "Katerina Minkova commented on your post.", UserId = 2, ActorId = 4, PostId = 3, IsRead = false, CreatedAt = new DateTime(2026, 4, 30, 16, 0, 0) },
+                new Notification { Id = 3, Type = NotificationType.Follow, Content = "Martin Petrov sent you a connection request.", UserId = 2, ActorId = 5, IsRead = true, CreatedAt = new DateTime(2024, 2, 4) }
             );
         }
     }

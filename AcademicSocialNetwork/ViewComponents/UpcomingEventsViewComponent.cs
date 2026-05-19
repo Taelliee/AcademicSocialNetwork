@@ -15,7 +15,7 @@ public class UpcomingEventsViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var now    = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
         var events = await _db.Events
             .Where(e => e.StartTime > now)
             .OrderBy(e => e.StartTime)

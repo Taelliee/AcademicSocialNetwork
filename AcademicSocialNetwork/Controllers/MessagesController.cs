@@ -23,7 +23,7 @@ public class MessagesController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var userId        = CurrentUserId;
+        var userId = CurrentUserId;
         var conversations = await GetConversationsForCurrentUser();
         ViewBag.CurrentUserId = userId;
         ViewBag.UnreadCounts  = await GetUnreadCountsAsync(userId);
@@ -59,8 +59,8 @@ public class MessagesController : Controller
 
         var conversations = await GetConversationsForCurrentUser();
         ViewBag.ActiveConversation = conversation;
-        ViewBag.CurrentUserId      = userId;
-        ViewBag.UnreadCounts       = await GetUnreadCountsAsync(userId);
+        ViewBag.CurrentUserId = userId;
+        ViewBag.UnreadCounts = await GetUnreadCountsAsync(userId);
 
         return View("Index", conversations);
     }
@@ -171,11 +171,11 @@ public class MessagesController : Controller
         {
             _db.Notifications.Add(new Notification
             {
-                Type      = NotificationType.Message,
-                Content   = $"{actorName} sent you a message: {preview}",
-                UserId    = recipientId,
-                ActorId   = userId,
-                LinkUrl   = $"/Messages/Open/{conversationId}",
+                Type = NotificationType.Message,
+                Content = $"{actorName} sent you a message: {preview}",
+                UserId = recipientId,
+                ActorId = userId,
+                LinkUrl = $"/Messages/Open/{conversationId}",
                 CreatedAt = DateTime.UtcNow
             });
         }

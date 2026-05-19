@@ -26,12 +26,12 @@ public class ProfileCardViewComponent : ViewComponent
             .Where(u => u.Id == userId)
             .Select(u => new ProfileCardModel
             {
-                FullName          = u.FullName,
-                Major             = u.Major,
-                ClassYear         = u.ClassYear,
-                ProfileImageUrl   = u.ProfileImageUrl,
-                PostsCount        = u.Posts.Count(p => !p.IsDeleted),
-                ConnectionsCount  = u.Followers.Count(c => c.Status == Models.ConnectionStatus.Accepted)
+                FullName = u.FullName,
+                Major = u.Major,
+                ClassYear = u.ClassYear,
+                ProfileImageUrl = u.ProfileImageUrl,
+                PostsCount = u.Posts.Count(p => !p.IsDeleted),
+                ConnectionsCount = u.Followers.Count(c => c.Status == Models.ConnectionStatus.Accepted)
                                   + u.Following.Count(c => c.Status == Models.ConnectionStatus.Accepted)
             })
             .FirstOrDefaultAsync();
@@ -42,10 +42,10 @@ public class ProfileCardViewComponent : ViewComponent
 
 public class ProfileCardModel
 {
-    public string FullName         { get; set; } = string.Empty;
-    public string? Major           { get; set; }
-    public uint? ClassYear         { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string? Major { get; set; }
+    public uint? ClassYear { get; set; }
     public string? ProfileImageUrl { get; set; }
-    public int PostsCount          { get; set; }
-    public int ConnectionsCount    { get; set; }
+    public int PostsCount { get; set; }
+    public int ConnectionsCount { get; set; }
 }

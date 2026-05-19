@@ -171,7 +171,10 @@
                 <form asp-controller="Post" asp-action="Like" method="post" class="d-inline">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="postId" value="@post.Id" />
-                    <button type="submit" class="post-action border-0 bg-transparent">
+                    <button type="button"
+                            class="post-action border-0 bg-transparent like-btn"
+                            data-post-id="@post.Id"
+                            data-liked="@(post.Likes.Any(l => !l.IsDeleted && l.UserId == currentUserId) ? "true" : "false")">
                         <i class="bi @(post.Likes.Any(l => !l.IsDeleted && l.UserId == currentUserId) ? "bi-heart-fill" : "bi-heart")"></i>
                         <span>@post.LikeCount</span>
                     </button>
@@ -205,9 +208,8 @@
                             </div>
                         </div>
                     }
-                    <form asp-controller="Post" asp-action="Comment" method="post" class="d-flex gap-2 mt-2">
+                    <form class="comment-form d-flex gap-2 mt-2" data-post-id="@post.Id">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="postId" value="@post.Id" />
                         <div class="avatar-circle avatar-circle-small flex-shrink-0">
                             @{
                                 var profileImgUrl = User.FindFirst("ProfileImageUrl")?.Value;
@@ -246,43 +248,4 @@ else
             <a asp-controller="Connections" asp-action="Discover" class="btn btn-primary">Find Connections</a>
         </div>
     </div>
-}
-
-@section Scripts {
-<script>
-    function previewPhoto(input) {
-        const container = document.getElementById('photoPreviewContainer');
-        const preview   = document.getElementById('photoPreview');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                preview.src = e.target.result;
-                container.classList.remove('d-none');
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function removePhoto() {
-        document.getElementById('photoInput').value = '';
-        document.getElementById('photoPreview').src = '#';
-        document.getElementById('photoPreviewContainer').classList.add('d-none');
-    }
-
-    function toggleLink() {
-        const container = document.getElementById('linkInputContainer');
-        const isHidden  = container.classList.contains('d-none');
-        container.classList.toggle('d-none', !isHidden);
-        if (isHidden) {
-            document.getElementById('linkUrlInput').focus();
-        } else {
-            document.getElementById('linkUrlInput').value = '';
-        }
-    }
-
-    function removeLink() {
-        document.getElementById('linkUrlInput').value = '';
-        document.getElementById('linkInputContainer').classList.add('d-none');
-    }
-</script>
 }

@@ -43,9 +43,9 @@ public class SearchController : Controller
 
         var vm = new SearchResultsViewModel
         {
-            Query   = term,
-            Users   = users,
-            Posts   = posts
+            Query = term,
+            Users = users,
+            Posts = posts
         };
 
         return View(vm);

@@ -57,9 +57,6 @@ public class PostControllerTests
     }
 
     // ── Test 1 ────────────────────────────────────────────────────────────────
-    /// <summary>
-    /// The post owner can soft-delete their own post.
-    /// </summary>
     [Fact]
     public async Task Delete_ByOwner_SoftDeletesPost()
     {
@@ -77,10 +74,6 @@ public class PostControllerTests
     }
 
     // ── Test 2 ────────────────────────────────────────────────────────────────
-    /// <summary>
-    /// A regular user cannot delete someone else's post.
-    /// The post must remain NOT deleted.
-    /// </summary>
     [Fact]
     public async Task Delete_ByNonOwner_DoesNotDeletePost()
     {
@@ -98,9 +91,6 @@ public class PostControllerTests
     }
 
     // ── Test 3 ────────────────────────────────────────────────────────────────
-    /// <summary>
-    /// An admin can delete any post, even one they don't own.
-    /// </summary>
     [Fact]
     public async Task Delete_ByAdmin_DeletesAnyPost()
     {

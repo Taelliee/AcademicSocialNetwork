@@ -30,16 +30,16 @@ public class PostController : Controller
         {
             var post = new Post
             {
-                Content   = content,
-                UserId    = CurrentUserId,
+                Content = content,
+                UserId = CurrentUserId,
                 CreatedAt = DateTime.UtcNow,
-                LinkUrl   = string.IsNullOrWhiteSpace(linkUrl) ? null : linkUrl.Trim()
+                LinkUrl = string.IsNullOrWhiteSpace(linkUrl) ? null : linkUrl.Trim()
             };
 
             if (photo != null && photo.Length > 0)
             {
                 var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                var ext     = Path.GetExtension(photo.FileName).ToLowerInvariant();
+                var ext = Path.GetExtension(photo.FileName).ToLowerInvariant();
 
                 if (allowed.Contains(ext))
                 {
@@ -87,9 +87,9 @@ public class PostController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Like(int postId)
+    public async Task<IActionResult> LikeAjax(int postId)
     {
-        var userId = CurrentUserId;
+        var userId    = CurrentUserId;
         var actorName = User.Identity?.Name ?? "Someone";
 
         var post = await _db.Posts
@@ -97,87 +97,94 @@ public class PostController : Controller
             .FirstOrDefaultAsync(p => p.Id == postId);
 
         if (post == null)
-            return RedirectToAction("Index", "Home");
+            return NotFound();
 
         var existing = await _db.Likes
             .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
 
-        var shouldNotify = false;
+        bool isLiked;
 
         if (existing == null)
         {
-            _db.Likes.Add(new Like
-            {
-                PostId    = postId,
-                UserId    = userId,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            shouldNotify = true;
+            _db.Likes.Add(new Like { PostId = postId, UserId = userId, CreatedAt = DateTime.UtcNow });
+            isLiked = true;
         }
         else
         {
             existing.IsDeleted = !existing.IsDeleted;
-            shouldNotify = !existing.IsDeleted;
+            isLiked = !existing.IsDeleted;
         }
 
-        if (shouldNotify && post.UserId != userId)
+        if (isLiked && post.UserId != userId)
         {
             _db.Notifications.Add(new Notification
             {
-                Type      = NotificationType.Like,
-                Content   = $"{actorName} liked your post.",
-                UserId    = post.UserId,
-                ActorId   = userId,
-                PostId    = post.Id,
-                LinkUrl   = "/",
+                Type = NotificationType.Like,
+                Content = $"{actorName} liked your post.",
+                UserId = post.UserId,
+                ActorId = userId,
+                PostId = post.Id,
+                LinkUrl = "/",
                 CreatedAt = DateTime.UtcNow
             });
         }
 
         await _db.SaveChangesAsync();
-        return RedirectToAction("Index", "Home");
+
+        var likeCount = await _db.Likes.CountAsync(l => l.PostId == postId && !l.IsDeleted);
+        return Json(new { liked = isLiked, likeCount });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Comment(int postId, string content)
+    public async Task<IActionResult> CommentAjax(int postId, string content)
     {
-        if (!string.IsNullOrWhiteSpace(content))
+        if (string.IsNullOrWhiteSpace(content))
+            return BadRequest();
+
+        var actorName = User.Identity?.Name ?? "Someone";
+        var userId    = CurrentUserId;
+
+        var post = await _db.Posts
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Id == postId);
+
+        if (post == null)
+            return NotFound();
+
+        var comment = new Comment
         {
-            var actorName = User.Identity?.Name ?? "Someone";
-            var post = await _db.Posts
-                .IgnoreQueryFilters()
-                .FirstOrDefaultAsync(p => p.Id == postId);
+            Content = content,
+            PostId = postId,
+            UserId = userId,
+            CreatedAt = DateTime.UtcNow
+        };
 
-            if (post == null)
-                return RedirectToAction("Index", "Home");
+        _db.Comments.Add(comment);
 
-            _db.Comments.Add(new Comment
+        if (post.UserId != userId)
+        {
+            _db.Notifications.Add(new Notification
             {
-                Content   = content,
-                PostId    = postId,
-                UserId    = CurrentUserId,
+                Type = NotificationType.Comment,
+                Content = $"{actorName} commented on your post.",
+                UserId = post.UserId,
+                ActorId = userId,
+                PostId = post.Id,
+                LinkUrl = "/",
                 CreatedAt = DateTime.UtcNow
             });
-
-            if (post.UserId != CurrentUserId)
-            {
-                _db.Notifications.Add(new Notification
-                {
-                    Type      = NotificationType.Comment,
-                    Content   = $"{actorName} commented on your post.",
-                    UserId    = post.UserId,
-                    ActorId   = CurrentUserId,
-                    PostId    = post.Id,
-                    LinkUrl   = "/",
-                    CreatedAt = DateTime.UtcNow
-                });
-            }
-
-            await _db.SaveChangesAsync();
         }
 
-        return RedirectToAction("Index", "Home");
+        await _db.SaveChangesAsync();
+
+        var commentCount = await _db.Comments.CountAsync(c => c.PostId == postId);
+        return Json(new
+        {
+            commentCount,
+            authorName = actorName,
+            content = comment.Content,
+            createdAt = comment.CreatedAt.ToString("MMM dd, HH:mm")
+        });
     }
 }

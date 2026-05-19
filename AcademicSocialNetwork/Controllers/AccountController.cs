@@ -135,10 +135,10 @@ public class AccountController : Controller
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name,           user.FullName),
-            new(ClaimTypes.Email,          user.Email),
-            new(ClaimTypes.Role,           user.IsAdmin ? "Admin" : "User"),
-            new("ProfileImageUrl",         user.ProfileImageUrl ?? "")
+            new(ClaimTypes.Name, user.FullName),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.IsAdmin ? "Admin" : "User"),
+            new("ProfileImageUrl", user.ProfileImageUrl ?? "")
         };
 
         var identity  = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -150,7 +150,7 @@ public class AccountController : Controller
             new AuthenticationProperties
             {
                 IsPersistent = isPersistent,
-                ExpiresUtc   = DateTimeOffset.UtcNow.AddDays(isPersistent ? 30 : 1)
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(isPersistent ? 30 : 1)
             });
     }
 }

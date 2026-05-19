@@ -35,9 +35,9 @@ public class ConnectionsController : Controller
         var vm = new ConnectionsViewModel
         {
             CurrentUserId = userId,
-            Accepted      = all.Where(c => c.Status == ConnectionStatus.Accepted).ToList(),
-            Incoming      = all.Where(c => c.Status == ConnectionStatus.Pending && c.FollowingId == userId).ToList(),
-            Outgoing      = all.Where(c => c.Status == ConnectionStatus.Pending && c.FollowerId  == userId).ToList()
+            Accepted = all.Where(c => c.Status == ConnectionStatus.Accepted).ToList(),
+            Incoming = all.Where(c => c.Status == ConnectionStatus.Pending && c.FollowingId == userId).ToList(),
+            Outgoing = all.Where(c => c.Status == ConnectionStatus.Pending && c.FollowerId == userId).ToList()
         };
 
         return View(vm);
@@ -78,21 +78,21 @@ public class ConnectionsController : Controller
         {
             _db.Connections.Add(new Connection
             {
-                FollowerId  = userId,
+                FollowerId = userId,
                 FollowingId = targetUserId,
-                Status      = ConnectionStatus.Pending,
-                CreatedAt   = DateTime.UtcNow
+                Status = ConnectionStatus.Pending,
+                CreatedAt = DateTime.UtcNow
             });
 
             if (targetUserId != userId)
             {
                 _db.Notifications.Add(new Notification
                 {
-                    Type      = NotificationType.Follow,
-                    Content   = $"{actorName} sent you a connection request.",
-                    UserId    = targetUserId,
-                    ActorId   = userId,
-                    LinkUrl   = "/Connections",
+                    Type = NotificationType.Follow,
+                    Content = $"{actorName} sent you a connection request.",
+                    UserId = targetUserId,
+                    ActorId = userId,
+                    LinkUrl = "/Connections",
                     CreatedAt = DateTime.UtcNow
                 });
             }
@@ -116,16 +116,16 @@ public class ConnectionsController : Controller
 
         if (connection != null && connection.FollowingId == CurrentUserId)
         {
-            connection.Status     = ConnectionStatus.Accepted;
+            connection.Status = ConnectionStatus.Accepted;
             connection.AcceptedAt = DateTime.UtcNow;
 
             _db.Notifications.Add(new Notification
             {
-                Type      = NotificationType.Follow,
-                Content   = $"{actorName} accepted your connection request.",
-                UserId    = connection.FollowerId,
-                ActorId   = CurrentUserId,
-                LinkUrl   = "/Connections",
+                Type = NotificationType.Follow,
+                Content = $"{actorName} accepted your connection request.",
+                UserId = connection.FollowerId,
+                ActorId = CurrentUserId,
+                LinkUrl = "/Connections",
                 CreatedAt = DateTime.UtcNow
             });
 
@@ -173,7 +173,7 @@ public class ConnectionsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Remove(int connectionId)
     {
-        var userId     = CurrentUserId;
+        var userId = CurrentUserId;
         var connection = await _db.Connections.FindAsync(connectionId);
 
         if (connection != null
