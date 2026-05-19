@@ -36,7 +36,9 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        Models.User? user = await _db.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Email == model.Email);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
         {
@@ -80,21 +82,29 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        if (await _db.Users.AnyAsync(u => u.Email == model.Email))
+        Models.User? existingUser = await _db.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Email == model.Email);
+
+        if (existingUser != null)
         {
-            ModelState.AddModelError(nameof(model.Email), "An account with this email already exists.");
+            string message = existingUser.IsDeleted
+                ? "This email belongs to a deleted account."
+                : "An account with this email already exists.";
+
+            ModelState.AddModelError(nameof(model.Email), message);
             return View(model);
         }
 
-        var user = new Models.User
+        Models.User user = new Models.User
         {
-            FullName     = model.FullName,
-            Email        = model.Email,
+            FullName = model.FullName,
+            Email = model.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-            Major        = model.Major?.ToString(),   // stores "ComputerScience" etc.
-            ClassYear    = model.ClassYear,
-            CreatedAt    = DateTime.UtcNow,
-            IsOnline     = true
+            Major = model.Major?.ToString(),   // stores "ComputerScience" etc.
+            ClassYear = model.ClassYear,
+            CreatedAt = DateTime.UtcNow,
+            IsOnline = true
         };
 
         _db.Users.Add(user);
@@ -111,11 +121,11 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
-        var userId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+        int userId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int id) ? id : 0;
 
         if (userId > 0)
         {
-            var user = await _db.Users.FindAsync(userId);
+            Models.User? user = await _db.Users.FindAsync(userId);
             if (user != null)
             {
                 user.IsOnline   = false;
@@ -132,7 +142,7 @@ public class AccountController : Controller
 
     private async Task SignInAsync(Models.User user, bool isPersistent)
     {
-        var claims = new List<Claim>
+        List<Claim> claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.FullName),
@@ -141,8 +151,8 @@ public class AccountController : Controller
             new("ProfileImageUrl", user.ProfileImageUrl ?? "")
         };
 
-        var identity  = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
+        ClaimsIdentity  identity  = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,

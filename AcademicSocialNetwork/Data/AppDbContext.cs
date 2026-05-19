@@ -236,12 +236,14 @@ namespace AcademicSocialNetwork.Data
 
         private static void SeedData(ModelBuilder modelBuilder)
         {
+            const string DefaultPasswordHash = "$2a$11$hrl4HNnVvV0d7JWd2.zqB.DHdEJC9y0ckk8.3a13xF38degF4qmgG";
+
             modelBuilder.Entity<User>().HasData(
-                new User { Id = 1, FullName = "Administrator", Email = "admin@uni.bg", PasswordHash = "hashed", IsAdmin = true, IsOnline = false, CreatedAt = new DateTime(2024, 1, 1) },
-                new User { Id = 2, FullName = "Elitsa Ilarionova", Email = "elitsa@uni.bg", PasswordHash = "hashed", Major = "SoftwareAndInternetTechnologies", ClassYear = 2023, Bio = "Passionate about technology.", IsOnline = true, CreatedAt = new DateTime(2024, 1, 2) },
-                new User { Id = 3, FullName = "Vlado Gospodinov", Email = "vladislav@uni.bg", PasswordHash = "hashed", Major = "SoftwareEngineering", ClassYear = 2025, Bio = "Love coding and algorithms.", IsOnline = true, CreatedAt = new DateTime(2024, 1, 3) },
-                new User { Id = 4, FullName = "Katerina Minkova", Email = "katerina@uni.bg", PasswordHash = "hashed", Major = "Mathematics", ClassYear = 2026, Bio = "Math enthusiast.", IsOnline = false, CreatedAt = new DateTime(2024, 1, 4) },
-                new User { Id = 5, FullName = "Martin Petrov", Email = "martin@uni.bg", PasswordHash = "hashed", Major = "ComputerScience", ClassYear = 2024, Bio = "Thesis writing season.", IsOnline = true, CreatedAt = new DateTime(2024, 1, 5) }
+                new User { Id = 1, FullName = "Administrator", Email = "admin@uni.bg", PasswordHash = DefaultPasswordHash, IsAdmin = true, IsOnline = false, CreatedAt = new DateTime(2024, 1, 1) },
+                new User { Id = 2, FullName = "Elitsa Ilarionova", Email = "elitsa@uni.bg", PasswordHash = DefaultPasswordHash, Major = "SoftwareAndInternetTechnologies", ClassYear = 2023, Bio = "Passionate about technology.", IsOnline = true, CreatedAt = new DateTime(2024, 1, 2) },
+                new User { Id = 3, FullName = "Vlado Gospodinov", Email = "vladislav@uni.bg", PasswordHash = DefaultPasswordHash, Major = "SoftwareEngineering", ClassYear = 2025, Bio = "Love coding and algorithms.", IsOnline = true, CreatedAt = new DateTime(2024, 1, 3) },
+                new User { Id = 4, FullName = "Katerina Minkova", Email = "katerina@uni.bg", PasswordHash = DefaultPasswordHash, Major = "Mathematics", ClassYear = 2026, Bio = "Math enthusiast.", IsOnline = false, CreatedAt = new DateTime(2024, 1, 4) },
+                new User { Id = 5, FullName = "Martin Petrov", Email = "martin@uni.bg", PasswordHash = DefaultPasswordHash, Major = "ComputerScience", ClassYear = 2024, Bio = "Thesis writing season.", IsOnline = true, CreatedAt = new DateTime(2024, 1, 5) }
             );
 
             modelBuilder.Entity<Post>().HasData(

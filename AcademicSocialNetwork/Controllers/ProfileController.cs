@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace AcademicSocialNetwork.Controllers;
 
@@ -29,9 +30,9 @@ public class ProfileController : Controller
     // GET /Profile?id=3 → another user's profile
     public async Task<IActionResult> Index(int? id)
     {
-        var userId = id ?? CurrentUserId;
+        int userId = id ?? CurrentUserId;
 
-        var user = await _db.Users
+        User? user = await _db.Users
             .Include(u => u.Posts.Where(p => !p.IsDeleted))
                 .ThenInclude(p => p.Likes)
             .Include(u => u.Posts.Where(p => !p.IsDeleted))
@@ -52,10 +53,10 @@ public class ProfileController : Controller
     // GET /Profile/Edit
     public async Task<IActionResult> Edit()
     {
-        var user = await _db.Users.FindAsync(CurrentUserId);
+        User? user = await _db.Users.FindAsync(CurrentUserId);
         if (user == null) return NotFound();
 
-        var vm = new EditProfileViewModel
+        EditProfileViewModel vm = new EditProfileViewModel
         {
             FullName = user.FullName,
             Major = EnumExtensions.ParseOrNull<Major>(user.Major),
@@ -75,7 +76,7 @@ public class ProfileController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = await _db.Users.FindAsync(CurrentUserId);
+        User? user = await _db.Users.FindAsync(CurrentUserId);
         if (user == null) return NotFound();
 
         user.FullName = model.FullName;
@@ -85,8 +86,8 @@ public class ProfileController : Controller
 
         if (model.ProfileImage is { Length: > 0 })
         {
-            var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-            var ext = Path.GetExtension(model.ProfileImage.FileName).ToLowerInvariant();
+            string[] allowed = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+            string ext = Path.GetExtension(model.ProfileImage.FileName).ToLowerInvariant();
 
             if (!allowed.Contains(ext))
             {
@@ -96,15 +97,15 @@ public class ProfileController : Controller
 
             if (!string.IsNullOrEmpty(user.ProfileImageUrl))
             {
-                var old = Path.Combine(_env.WebRootPath, user.ProfileImageUrl.TrimStart('/'));
+                string old = Path.Combine(_env.WebRootPath, user.ProfileImageUrl.TrimStart('/'));
                 if (System.IO.File.Exists(old)) System.IO.File.Delete(old);
             }
 
-            var folder = Path.Combine(_env.WebRootPath, "uploads", "profiles");
+            string folder = Path.Combine(_env.WebRootPath, "uploads", "profiles");
             Directory.CreateDirectory(folder);
-            var fileName = $"{Guid.NewGuid()}{ext}";
+            string fileName = $"{Guid.NewGuid()}{ext}";
 
-            using var stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+            using FileStream stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
             await model.ProfileImage.CopyToAsync(stream);
 
             user.ProfileImageUrl = $"/uploads/profiles/{fileName}";
@@ -112,7 +113,7 @@ public class ProfileController : Controller
 
         await _db.SaveChangesAsync();
 
-        var claims = new List<Claim>
+        List<Claim> claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.FullName),
@@ -120,9 +121,10 @@ public class ProfileController : Controller
             new(ClaimTypes.Role, user.IsAdmin ? "Admin" : "User"),
             new("ProfileImageUrl", user.ProfileImageUrl ?? "")
         };
-        var identity  = new ClaimsIdentity(claims, Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
-        await HttpContext.SignInAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+        ClaimsIdentity identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
         return RedirectToAction(nameof(Index));
     }

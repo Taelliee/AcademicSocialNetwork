@@ -1,8 +1,9 @@
-using System.Security.Claims;
 using AcademicSocialNetwork.Data;
+using AcademicSocialNetwork.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AcademicSocialNetwork.Controllers;
 
@@ -21,16 +22,16 @@ public class NotificationsController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var userId = CurrentUserId;
+        int userId = CurrentUserId;
 
-        var notifications = await _db.Notifications
+        List<Notification> notifications = await _db.Notifications
             .Where(n => n.UserId == userId)
             .Include(n => n.Actor)
             .Include(n => n.Post)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
 
-        var unread = notifications.Where(n => !n.IsRead).ToList();
+        List<Notification> unread = notifications.Where(n => !n.IsRead).ToList();
         unread.ForEach(n => { n.IsRead = true; n.ReadAt = DateTime.UtcNow; });
         await _db.SaveChangesAsync();
 

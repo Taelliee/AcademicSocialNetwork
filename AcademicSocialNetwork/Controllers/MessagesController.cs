@@ -23,8 +23,8 @@ public class MessagesController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var userId = CurrentUserId;
-        var conversations = await GetConversationsForCurrentUser();
+        int userId = CurrentUserId;
+        List<Conversation> conversations = await GetConversationsForCurrentUser();
         ViewBag.CurrentUserId = userId;
         ViewBag.UnreadCounts  = await GetUnreadCountsAsync(userId);
         return View(conversations);
@@ -32,9 +32,9 @@ public class MessagesController : Controller
 
     public async Task<IActionResult> Open(int id)
     {
-        var userId = CurrentUserId;
+        int userId = CurrentUserId;
 
-        var conversation = await _db.Conversations
+        Conversation? conversation = await _db.Conversations
             .Include(c => c.Participants)
                 .ThenInclude(p => p.User)
             .Include(c => c.Messages.OrderBy(m => m.CreatedAt))
@@ -45,19 +45,19 @@ public class MessagesController : Controller
         if (conversation == null)
             return NotFound();
 
-        foreach (var msg in conversation.Messages.Where(m => m.SenderId != userId && !m.IsRead))
+        foreach (Message msg in conversation.Messages.Where(m => m.SenderId != userId && !m.IsRead))
         {
             msg.IsRead = true;
             msg.ReadAt = DateTime.UtcNow;
         }
 
-        var participant = conversation.Participants.FirstOrDefault(p => p.UserId == userId);
+        ConversationParticipant? participant = conversation.Participants.FirstOrDefault(p => p.UserId == userId);
         if (participant != null)
             participant.LastReadAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
 
-        var conversations = await GetConversationsForCurrentUser();
+        List<Conversation> conversations = await GetConversationsForCurrentUser();
         ViewBag.ActiveConversation = conversation;
         ViewBag.CurrentUserId = userId;
         ViewBag.UnreadCounts = await GetUnreadCountsAsync(userId);
@@ -71,7 +71,7 @@ public class MessagesController : Controller
         if (string.IsNullOrWhiteSpace(q))
             return Json(Array.Empty<object>());
 
-        var userId = CurrentUserId;
+        int userId = CurrentUserId;
 
         var users = await _db.Users
             .Where(u => u.Id != userId && !u.IsAdmin && u.FullName.Contains(q))
@@ -81,7 +81,7 @@ public class MessagesController : Controller
 
         var result = users.Select(u =>
         {
-            var majorEnum = Helpers.EnumExtensions.ParseOrNull<Models.Major>(u.Major);
+            Major? majorEnum = EnumExtensions.ParseOrNull<Major>(u.Major);
             return new
             {
                 u.Id,
@@ -97,12 +97,12 @@ public class MessagesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> StartConversation(int targetUserId)
     {
-        var userId = CurrentUserId;
+        int userId = CurrentUserId;
 
         if (targetUserId == userId)
             return BadRequest();
 
-        var existing = await _db.Conversations
+        Conversation? existing = await _db.Conversations
             .Where(c => !c.IsGroup
                 && c.Participants.Any(p => p.UserId == userId)
                 && c.Participants.Any(p => p.UserId == targetUserId)
@@ -112,7 +112,7 @@ public class MessagesController : Controller
         if (existing != null)
             return RedirectToAction(nameof(Open), new { id = existing.Id });
 
-        var conversation = new Conversation
+        Conversation conversation = new Conversation
         {
             IsGroup   = false,
             CreatedAt = DateTime.UtcNow,
@@ -136,16 +136,16 @@ public class MessagesController : Controller
         if (string.IsNullOrWhiteSpace(content))
             return RedirectToAction(nameof(Open), new { id = conversationId });
 
-        var userId = CurrentUserId;
-        var actorName = User.Identity?.Name ?? "Someone";
+        int userId = CurrentUserId;
+        string actorName = User.Identity?.Name ?? "Someone";
 
-        var isParticipant = await _db.ConversationParticipants
+        bool isParticipant = await _db.ConversationParticipants
             .AnyAsync(p => p.ConversationId == conversationId && p.UserId == userId);
 
         if (!isParticipant)
             return Forbid();
 
-        var recipientIds = await _db.ConversationParticipants
+        List<int> recipientIds = await _db.ConversationParticipants
             .Where(p => p.ConversationId == conversationId && p.UserId != userId)
             .Select(p => p.UserId)
             .ToListAsync();
@@ -162,12 +162,12 @@ public class MessagesController : Controller
             .Where(c => c.Id == conversationId)
             .ExecuteUpdateAsync(s => s.SetProperty(c => c.LastMessageAt, DateTime.UtcNow));
 
-        var trimmedContent = content.Trim();
-        var preview = trimmedContent.Length > 80
+        string trimmedContent = content.Trim();
+        string preview = trimmedContent.Length > 80
             ? $"{trimmedContent[..77]}..."
             : trimmedContent;
 
-        foreach (var recipientId in recipientIds)
+        foreach (int recipientId in recipientIds)
         {
             _db.Notifications.Add(new Notification
             {
@@ -187,7 +187,7 @@ public class MessagesController : Controller
 
     private async Task<List<Conversation>> GetConversationsForCurrentUser()
     {
-        var userId = CurrentUserId;
+        int userId = CurrentUserId;
         return await _db.Conversations
             .Where(c => c.Participants.Any(p => p.UserId == userId))
             .Include(c => c.Participants)

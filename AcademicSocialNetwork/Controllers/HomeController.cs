@@ -22,7 +22,7 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var posts = await _db.Posts
+        List<Post> posts = await _db.Posts
             .Where(p => !p.IsDeleted)
             .Include(p => p.Author)
             .Include(p => p.Likes)

@@ -1,4 +1,5 @@
 using AcademicSocialNetwork.Data;
+using AcademicSocialNetwork.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +16,7 @@ public class TrendingTopicsViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var tags = await _db.Tags
+        List<Tag> tags = await _db.Tags
             .Where(t => t.UseCount > 0)
             .OrderByDescending(t => t.UseCount)
             .Take(6)

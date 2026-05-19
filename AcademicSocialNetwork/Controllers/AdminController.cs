@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using AcademicSocialNetwork.Data;
+using AcademicSocialNetwork.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,7 @@ public class AdminController : Controller
     // GET /Admin
     public async Task<IActionResult> Index()
     {
-        var users = await _db.Users
+        List<User> users = await _db.Users
             .OrderBy(u => u.FullName)
             .ToListAsync();
 
@@ -31,7 +32,7 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleAdmin(int id)
     {
-        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         if (id == currentUserId)
         {
@@ -39,7 +40,7 @@ public class AdminController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var user = await _db.Users.FindAsync(id);
+        User? user = await _db.Users.FindAsync(id);
         if (user == null)
             return NotFound();
 
@@ -55,7 +56,7 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         if (id == currentUserId)
         {
@@ -63,7 +64,7 @@ public class AdminController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var user = await _db.Users.FindAsync(id);
+        User? user = await _db.Users.FindAsync(id);
         if (user == null)
             return NotFound();
 

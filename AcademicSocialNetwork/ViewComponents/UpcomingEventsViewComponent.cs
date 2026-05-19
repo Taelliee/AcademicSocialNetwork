@@ -1,4 +1,5 @@
 using AcademicSocialNetwork.Data;
+using AcademicSocialNetwork.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,8 +16,8 @@ public class UpcomingEventsViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var now = DateTime.UtcNow;
-        var events = await _db.Events
+        DateTime now = DateTime.UtcNow;
+        List<Event> events = await _db.Events
             .Where(e => e.StartTime > now)
             .OrderBy(e => e.StartTime)
             .Take(3)

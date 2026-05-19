@@ -27,13 +27,13 @@ public class SearchController : Controller
         if (string.IsNullOrWhiteSpace(q))
             return View(new SearchResultsViewModel { Query = q });
 
-        var term = q.Trim();
+        string term = q.Trim();
 
-        var users = await _db.Users
+        List<User> users = await _db.Users
             .Where(u => !u.IsAdmin && u.Id != CurrentUserId && u.FullName.Contains(term))
             .ToListAsync();
 
-        var posts = await _db.Posts
+        List<Post> posts = await _db.Posts
             .Include(p => p.Author)
             .Include(p => p.Likes)
             .Include(p => p.Comments.Where(c => !c.IsDeleted))
@@ -41,7 +41,7 @@ public class SearchController : Controller
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
 
-        var vm = new SearchResultsViewModel
+        SearchResultsViewModel vm = new SearchResultsViewModel
         {
             Query = term,
             Users = users,

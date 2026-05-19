@@ -1,7 +1,8 @@
-using System.Security.Claims;
 using AcademicSocialNetwork.Data;
+using AcademicSocialNetwork.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AcademicSocialNetwork.ViewComponents;
 
@@ -16,13 +17,13 @@ public class ProfileCardViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var userId = int.TryParse(
-            HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+        int userId = int.TryParse(
+            HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), out int id) ? id : 0;
 
         if (userId == 0)
             return Content(string.Empty);
 
-        var user = await _db.Users
+        ProfileCardModel? user = await _db.Users
             .Where(u => u.Id == userId)
             .Select(u => new ProfileCardModel
             {
@@ -31,8 +32,8 @@ public class ProfileCardViewComponent : ViewComponent
                 ClassYear = u.ClassYear,
                 ProfileImageUrl = u.ProfileImageUrl,
                 PostsCount = u.Posts.Count(p => !p.IsDeleted),
-                ConnectionsCount = u.Followers.Count(c => c.Status == Models.ConnectionStatus.Accepted)
-                                  + u.Following.Count(c => c.Status == Models.ConnectionStatus.Accepted)
+                ConnectionsCount = u.Followers.Count(c => c.Status == ConnectionStatus.Accepted)
+                                  + u.Following.Count(c => c.Status == ConnectionStatus.Accepted)
             })
             .FirstOrDefaultAsync();
 

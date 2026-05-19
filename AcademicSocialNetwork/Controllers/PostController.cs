@@ -28,7 +28,7 @@ public class PostController : Controller
     {
         if (!string.IsNullOrWhiteSpace(content))
         {
-            var post = new Post
+            Post post = new Post
             {
                 Content = content,
                 UserId = CurrentUserId,
@@ -38,18 +38,18 @@ public class PostController : Controller
 
             if (photo != null && photo.Length > 0)
             {
-                var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                var ext = Path.GetExtension(photo.FileName).ToLowerInvariant();
+                string[] allowed = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+                string ext = Path.GetExtension(photo.FileName).ToLowerInvariant();
 
                 if (allowed.Contains(ext))
                 {
-                    var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "posts");
+                    string uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "posts");
                     Directory.CreateDirectory(uploadsFolder);
 
-                    var fileName = $"{Guid.NewGuid()}{ext}";
-                    var filePath = Path.Combine(uploadsFolder, fileName);
+                    string fileName = $"{Guid.NewGuid()}{ext}";
+                    string filePath = Path.Combine(uploadsFolder, fileName);
 
-                    using var stream = new FileStream(filePath, FileMode.Create);
+                    using FileStream stream = new FileStream(filePath, FileMode.Create);
                     await photo.CopyToAsync(stream);
 
                     post.ImageUrl = $"/uploads/posts/{fileName}";
@@ -67,13 +67,13 @@ public class PostController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var post = await _db.Posts.FindAsync(id);
+        Post? post = await _db.Posts.FindAsync(id);
 
         if (post != null && (post.UserId == CurrentUserId || User.IsInRole("Admin")))
         {
             if (!string.IsNullOrEmpty(post.ImageUrl))
             {
-                var filePath = Path.Combine(_env.WebRootPath, post.ImageUrl.TrimStart('/'));
+                string filePath = Path.Combine(_env.WebRootPath, post.ImageUrl.TrimStart('/'));
                 if (System.IO.File.Exists(filePath))
                     System.IO.File.Delete(filePath);
             }
@@ -89,17 +89,17 @@ public class PostController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> LikeAjax(int postId)
     {
-        var userId    = CurrentUserId;
-        var actorName = User.Identity?.Name ?? "Someone";
+        int userId = CurrentUserId;
+        string actorName = User.Identity?.Name ?? "Someone";
 
-        var post = await _db.Posts
+        Post? post = await _db.Posts
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(p => p.Id == postId);
 
         if (post == null)
             return NotFound();
 
-        var existing = await _db.Likes
+        Like? existing = await _db.Likes
             .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
 
         bool isLiked;
@@ -131,7 +131,7 @@ public class PostController : Controller
 
         await _db.SaveChangesAsync();
 
-        var likeCount = await _db.Likes.CountAsync(l => l.PostId == postId && !l.IsDeleted);
+        int likeCount = await _db.Likes.CountAsync(l => l.PostId == postId && !l.IsDeleted);
         return Json(new { liked = isLiked, likeCount });
     }
 
@@ -142,17 +142,17 @@ public class PostController : Controller
         if (string.IsNullOrWhiteSpace(content))
             return BadRequest();
 
-        var actorName = User.Identity?.Name ?? "Someone";
-        var userId    = CurrentUserId;
+        string actorName = User.Identity?.Name ?? "Someone";
+        int    userId    = CurrentUserId;
 
-        var post = await _db.Posts
+        Post? post = await _db.Posts
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(p => p.Id == postId);
 
         if (post == null)
             return NotFound();
 
-        var comment = new Comment
+        Comment comment = new Comment
         {
             Content = content,
             PostId = postId,
@@ -178,7 +178,7 @@ public class PostController : Controller
 
         await _db.SaveChangesAsync();
 
-        var commentCount = await _db.Comments.CountAsync(c => c.PostId == postId);
+        int commentCount = await _db.Comments.CountAsync(c => c.PostId == postId);
         return Json(new
         {
             commentCount,

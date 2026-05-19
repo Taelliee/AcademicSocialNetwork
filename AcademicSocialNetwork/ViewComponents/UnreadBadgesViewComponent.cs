@@ -22,16 +22,16 @@ public class UnreadBadgesViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var userId = int.TryParse(
-            HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+        int userId = int.TryParse(
+            HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), out int id) ? id : 0;
 
         if (userId == 0)
             return View(new UnreadBadgesModel());
 
-        var unreadNotifications = await _db.Notifications
+        int unreadNotifications = await _db.Notifications
             .CountAsync(n => n.UserId == userId && !n.IsRead);
 
-        var unreadMessages = await _db.Messages
+        int unreadMessages = await _db.Messages
             .CountAsync(m => m.Conversation.Participants.Any(p => p.UserId == userId)
                           && m.SenderId != userId
                           && !m.IsRead);
